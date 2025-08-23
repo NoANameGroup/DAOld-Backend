@@ -2,9 +2,9 @@ package adaptor
 
 import (
 	"errors"
-	"github.com/NoANameGroup/The-DAOld-Backend/infra/consts/exception"
-	"github.com/NoANameGroup/The-DAOld-Backend/infra/util"
-	"github.com/NoANameGroup/The-DAOld-Backend/infra/util/log"
+	"github.com/NoANameGroup/DAOld-Backend/infra/consts/exception"
+	"github.com/NoANameGroup/DAOld-Backend/infra/util"
+	"github.com/NoANameGroup/DAOld-Backend/infra/util/log"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"reflect"

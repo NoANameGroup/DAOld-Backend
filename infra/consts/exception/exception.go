@@ -7,7 +7,7 @@ package errorx
 import (
 	"errors"
 	"fmt"
-	"github.com/NoANameGroup/The-DAOld-Backend/infra/util/log"
+	"github.com/NoANameGroup/DAOld-Backend/infra/util/log"
 )
 
 const unknowCode = 999

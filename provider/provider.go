@@ -3,7 +3,7 @@
 package provider
 
 import (
-	"github.com/NoANameGroup/The-DAOld-Backend/infra/config"
+	"github.com/NoANameGroup/DAOld-Backend/infra/config"
 	"github.com/google/wire"
 )
 

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/NoANameGroup/The-DAOld-Backend/adaptor/router"
-	"github.com/NoANameGroup/The-DAOld-Backend/infra/util/log"
-	"github.com/NoANameGroup/The-DAOld-Backend/provider"
+	"github.com/NoANameGroup/DAOld-Backend/adaptor/router"
+	"github.com/NoANameGroup/DAOld-Backend/infra/util/log"
+	"github.com/NoANameGroup/DAOld-Backend/provider"
 )
 
 func Init() {

@@ -6,7 +6,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
-	"github.com/NoANameGroup/The-DAOld-Backend/infra/util/log"
+	"github.com/NoANameGroup/DAOld-Backend/infra/util/log"
 	"github.com/cloudwego/hertz/pkg/common/json"
 	"github.com/google/uuid"
 	"io"

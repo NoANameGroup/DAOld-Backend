@@ -1,4 +1,4 @@
-module github.com/NoANameGroup/The-DAOld-Backend
+module github.com/NoANameGroup/DAOld-Backend
 
 go 1.25.0
 
