@@ -8,6 +8,8 @@ package provider
 
 import (
 	"github.com/NoANameGroup/DAOld-Backend/internal/config"
+	"github.com/NoANameGroup/DAOld-Backend/internal/repository"
+	"github.com/NoANameGroup/DAOld-Backend/internal/service"
 )
 
 // Injectors from wire.go:
@@ -17,8 +19,13 @@ func NewProvider() (*Provider, error) {
 	if err != nil {
 		return nil, err
 	}
+	userRepository := repository.NewRepository(configConfig)
+	userService := service.UserService{
+		UserMapper: userRepository,
+	}
 	providerProvider := &Provider{
-		Config: configConfig,
+		Config:      configConfig,
+		UserService: userService,
 	}
 	return providerProvider, nil
 }

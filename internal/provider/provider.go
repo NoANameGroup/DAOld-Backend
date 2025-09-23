@@ -4,6 +4,7 @@ package provider
 
 import (
 	"github.com/NoANameGroup/DAOld-Backend/internal/config"
+	"github.com/NoANameGroup/DAOld-Backend/internal/repository"
 	"github.com/NoANameGroup/DAOld-Backend/internal/service"
 	"github.com/google/wire"
 )
@@ -34,8 +35,7 @@ var ApplicationSet = wire.NewSet(
 
 var InfrastructureSet = wire.NewSet(
 	config.NewConfig,
-	//comment.NewMongoMapper,
-	//searchhistory.NewMongoMapper,
+	repository.NewRepository,
 )
 
 var AllProvider = wire.NewSet(
