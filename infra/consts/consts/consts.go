@@ -5,4 +5,8 @@ var PageSize int64 = 10
 // 数据库相关
 const ()
 
-// Controller
+// 业务相关
+const (
+	ContextUserID = "userId"
+	ContextToken  = "token"
+)
