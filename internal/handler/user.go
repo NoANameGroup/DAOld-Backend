@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/NoANameGroup/DAOld-Backend/consts"
+	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto/user"
 	"github.com/NoANameGroup/DAOld-Backend/internal/jwt"
 	"github.com/NoANameGroup/DAOld-Backend/internal/provider"
@@ -54,5 +54,30 @@ func GetMyProfile(c *gin.Context) {
 
 func ChangePassword(c *gin.Context) {
 	var err error
+	var req user.ChangePasswordReq
+	var resp *user.ChangePasswordResp
 
+	if err = c.ShouldBindJSON(&req); err != nil {
+		response.PostProcess(c, &req, resp, err)
+		return
+	}
+
+	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
+	resp, err = provider.Get().UserService.ChangePassword(c, &req)
+	response.PostProcess(c, &req, resp, err)
+}
+
+func DeleteAccount(c *gin.Context) {
+	var err error
+	var req user.DeleteAccountReq
+	var resp *user.DeleteAccountResp
+
+	if err = c.ShouldBindJSON(&req); err != nil {
+		response.PostProcess(c, &req, resp, err)
+		return
+	}
+
+	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
+	resp, err = provider.Get().UserService.DeleteAccount(c, &req)
+	response.PostProcess(c, &req, resp, err)
 }

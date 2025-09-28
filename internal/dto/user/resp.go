@@ -19,3 +19,11 @@ type GetMyProfileResp struct {
 	*dto.Resp
 	*UserVO
 }
+
+type ChangePasswordResp struct {
+	*dto.Resp
+}
+
+type DeleteAccountResp struct {
+	*dto.Resp
+}

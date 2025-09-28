@@ -68,6 +68,10 @@ func makeResponse(resp any) map[string]any {
 					embeddedValue := v.Field(i).Elem()
 					for j := 0; j < embeddedValue.NumField(); j++ {
 						embeddedField := embeddedValue.Type().Field(j)
+						// 跳过Code和Msg字段以避免重复
+						if embeddedField.Name == "Code" || embeddedField.Name == "Msg" {
+							continue
+						}
 						if jsonTag := embeddedField.Tag.Get("json"); jsonTag != "" {
 							data[jsonTag] = embeddedValue.Field(j).Interface()
 						} else {
@@ -80,6 +84,10 @@ func makeResponse(resp any) map[string]any {
 				embeddedValue := v.Field(i)
 				for j := 0; j < embeddedValue.NumField(); j++ {
 					embeddedField := embeddedValue.Type().Field(j)
+					// 跳过Code和Msg字段以避免重复
+					if embeddedField.Name == "Code" || embeddedField.Name == "Msg" {
+						continue
+					}
 					if jsonTag := embeddedField.Tag.Get("json"); jsonTag != "" {
 						data[jsonTag] = embeddedValue.Field(j).Interface()
 					} else {

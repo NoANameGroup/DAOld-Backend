@@ -2,10 +2,10 @@ package jwt
 
 import (
 	"errors"
+	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
 	"strings"
 	"time"
 
-	"github.com/NoANameGroup/DAOld-Backend/consts"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"

@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 	"errors"
-	"github.com/NoANameGroup/DAOld-Backend/consts"
 	"github.com/NoANameGroup/DAOld-Backend/internal/config"
+	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
 	"github.com/NoANameGroup/DAOld-Backend/internal/model"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/zeromicro/go-zero/core/stores/monc"
@@ -20,8 +20,10 @@ const (
 type IUserRepository interface {
 	Insert(ctx context.Context, user *model.User) error
 	FindUserByEmail(ctx context.Context, email string) (*model.User, error)
-	UpdateLastLoginAt(ctx context.Context, userID primitive.ObjectID, t time.Time) error
-	FindUserByUserID(ctx context.Context, userID primitive.ObjectID)
+	UpdateLastLoginAt(ctx context.Context, userId primitive.ObjectID, t time.Time) error
+	FindUserByUserID(ctx context.Context, userId primitive.ObjectID)
+	UpdatePassword(ctx context.Context, userId primitive.ObjectID, password string) error
+	DeleteUser(ctx context.Context, userId primitive.ObjectID) error
 }
 
 type UserRepository struct {
@@ -70,9 +72,9 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*mo
 	return &user, nil
 }
 
-func (r *UserRepository) UpdateLastLoginAt(ctx context.Context, userID primitive.ObjectID, t time.Time) error {
-	if _, err := r.conn.UpdateByIDNoCache(ctx, userID, bson.M{"$set": bson.M{consts.LastLoginAt: t}}); err != nil {
-		log.CtxError(ctx, "failed to update LastLoginAt for user %s: %v", userID.Hex(), err)
+func (r *UserRepository) UpdateLastLoginAt(ctx context.Context, userId primitive.ObjectID, t time.Time) error {
+	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": bson.M{consts.LastLoginAt: t}}); err != nil {
+		log.CtxError(ctx, "failed to update LastLoginAt for user %s: %v", userId.Hex(), err)
 		return err
 	}
 
@@ -90,4 +92,22 @@ func (r *UserRepository) FindUserByUserID(ctx context.Context, userId primitive.
 	}
 
 	return &user, nil
+}
+
+func (r *UserRepository) UpdatePassword(ctx context.Context, userId primitive.ObjectID, hashPassword string) error {
+	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": bson.M{consts.Password: hashPassword}}); err != nil {
+		log.CtxError(ctx, "failed to update password for user %s: %v", userId.Hex(), err)
+		return err
+	}
+
+	return nil
+}
+
+func (r *UserRepository) DeleteUser(ctx context.Context, userId primitive.ObjectID) error {
+	if _, err := r.conn.DeleteOneNoCache(ctx, bson.M{consts.ID: userId}); err != nil {
+		log.CtxError(ctx, "failed to delete user %s: %v", userId.Hex(), err)
+		return err
+	}
+
+	return nil
 }

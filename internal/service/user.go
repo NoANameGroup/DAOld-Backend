@@ -3,9 +3,10 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/NoANameGroup/DAOld-Backend/consts"
+	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto"
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto/user"
+	"github.com/NoANameGroup/DAOld-Backend/internal/errorx"
 	"github.com/NoANameGroup/DAOld-Backend/internal/jwt"
 	"github.com/NoANameGroup/DAOld-Backend/internal/model"
 	"github.com/NoANameGroup/DAOld-Backend/internal/repository"
@@ -20,6 +21,8 @@ type IUserService interface {
 	Register(ctx context.Context, req *user.RegisterReq) (*user.RegisterResp, error)
 	Login(ctx context.Context, req *user.LoginReq) (*user.LoginResp, error)
 	GetMyProfile(ctx context.Context) (*user.GetMyProfileResp, error)
+	ChangePassword(ctx context.Context, req *user.ChangePasswordReq) (*user.ChangePasswordResp, error)
+	DeleteAccount(ctx context.Context, req *user.DeleteAccountReq) (*user.DeleteAccountResp, error)
 }
 
 type UserService struct {
@@ -114,25 +117,114 @@ func (s *UserService) GetMyProfile(ctx context.Context) (*user.GetMyProfileResp,
 		return nil, err
 	}
 
-	userVO := user.UserVO{
-		Email:       userModel.Email,
-		Username:    userModel.Username,
-		Avatar:      userModel.Avatar,
-		FirstName:   userModel.FirstName,
-		LastName:    userModel.LastName,
-		Gender:      userModel.Gender,
-		Phone:       userModel.Phone,
-		Role:        userModel.Role,
-		Status:      userModel.Status,
-		Address:     userModel.Address,
-		Bio:         userModel.Bio,
-		Birthday:    userModel.Birthday,
-		LastLoginAt: userModel.LastLoginAt,
-		CreatedAt:   userModel.CreatedAt,
+	return &user.GetMyProfileResp{
+		Resp: dto.Success(),
+		UserVO: &user.UserVO{
+			Email:       userModel.Email,
+			Username:    userModel.Username,
+			Avatar:      userModel.Avatar,
+			FirstName:   userModel.FirstName,
+			LastName:    userModel.LastName,
+			Gender:      userModel.Gender,
+			Phone:       userModel.Phone,
+			Role:        userModel.Role,
+			Status:      userModel.Status,
+			Address:     userModel.Address,
+			Bio:         userModel.Bio,
+			Birthday:    userModel.Birthday,
+			LastLoginAt: userModel.LastLoginAt,
+			CreatedAt:   userModel.CreatedAt,
+		},
+	}, nil
+}
+
+func (s *UserService) ChangePassword(ctx context.Context, req *user.ChangePasswordReq) (*user.ChangePasswordResp, error) {
+	var err error
+	var userModel *model.User
+	var hashPassword string
+
+	// 获取用户ID并转换类型
+	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	if !ok {
+		return nil, errors.New("invalid user id in context")
 	}
 
-	return &user.GetMyProfileResp{
-		Resp:   dto.Success(),
-		UserVO: &userVO,
+	// 获取用户
+	userModel, err = s.UserRepository.FindUserByUserID(ctx, userId)
+	if err != nil {
+		log.CtxError(ctx, "failed to find user: %v", err)
+		return nil, err
+	}
+
+	// 校验旧密码是否正确
+	if !security.ComparePassword(userModel.Password, req.OldPassword) {
+		log.CtxInfo(ctx, "wrong password")
+		return nil, errorx.New(10001, "原密码错误")
+	}
+
+	// 检查新旧密码是否相同
+	if req.NewPassword == req.OldPassword {
+		log.CtxInfo(ctx, "new password cannot be the same as old password")
+		return nil, errorx.New(10002, "新密码不能与原密码相同")
+	}
+
+	// 检查确认密码是否匹配
+	if req.NewPassword != req.ConfirmPassword {
+		log.CtxInfo(ctx, "confirm password does not match")
+		return nil, errorx.New(10003, "确认密码与新密码不匹配")
+	}
+
+	// 生成哈希密码
+	if hashPassword, err = security.HashPassword(req.NewPassword); err != nil {
+		log.CtxError(ctx, "failed to hash password: %v", err)
+		return nil, err
+	}
+
+	// 更新密码
+	if err = s.UserRepository.UpdatePassword(ctx, userId, hashPassword); err != nil {
+		log.CtxError(ctx, "failed to update password: %v", err)
+		return nil, err
+	}
+
+	return &user.ChangePasswordResp{
+		Resp: dto.Success(),
+	}, nil
+}
+
+func (s *UserService) DeleteAccount(ctx context.Context, req *user.DeleteAccountReq) (*user.DeleteAccountResp, error) {
+	var err error
+	var userModel *model.User
+
+	// 获取用户ID并转换类型
+	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	if !ok {
+		return nil, errors.New("invalid user id in context")
+	}
+
+	// 获取用户
+	userModel, err = s.UserRepository.FindUserByUserID(ctx, userId)
+	if err != nil {
+		log.CtxError(ctx, "failed to find user: %v", err)
+		return nil, err
+	}
+
+	// 校验旧密码是否正确
+	if !security.ComparePassword(userModel.Password, req.Password) {
+		log.CtxInfo(ctx, "wrong password")
+		return nil, errors.New("wrong password")
+	}
+
+	if req.Confirmation != "我确认删除账号 "+userModel.Username {
+		log.CtxInfo(ctx, "confirmation does not match")
+		return nil, errors.New("confirmation does not match")
+	}
+
+	if err = s.UserRepository.DeleteUser(ctx, userId); err != nil {
+		log.CtxError(ctx, "failed to delete user: %v", err)
+		return nil, err
+	}
+
+	return &user.DeleteAccountResp{
+		Resp: dto.Success(),
 	}, nil
 }

@@ -2,7 +2,7 @@ package jwt
 
 import (
 	"errors"
-	"github.com/NoANameGroup/DAOld-Backend/consts"
+	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/response"
 	"github.com/gin-gonic/gin"
