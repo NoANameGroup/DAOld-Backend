@@ -1,3 +1,4 @@
 /.idea
+/.vscode
 full_project_source.txt
-/etc
+/config/
