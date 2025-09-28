@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"github.com/NoANameGroup/DAOld-Backend/consts"
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto"
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto/user"
 	"github.com/NoANameGroup/DAOld-Backend/internal/jwt"
@@ -18,10 +19,11 @@ import (
 type IUserService interface {
 	Register(ctx context.Context, req *user.RegisterReq) (*user.RegisterResp, error)
 	Login(ctx context.Context, req *user.LoginReq) (*user.LoginResp, error)
+	GetMyProfile(ctx context.Context) (*user.GetMyProfileResp, error)
 }
 
 type UserService struct {
-	UserMapper *repository.UserRepository
+	UserRepository *repository.UserRepository
 }
 
 var UserServiceSet = wire.NewSet(
@@ -43,14 +45,14 @@ func (s *UserService) Register(ctx context.Context, req *user.RegisterReq) (*use
 	newUser := &model.User{
 		ID:        primitive.NewObjectID(),
 		Email:     req.Email,
-		Username:  req.Name,
+		Username:  req.Username,
 		Password:  hashPassword,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
 
 	// 插入数据库
-	if err = s.UserMapper.Insert(ctx, newUser); err != nil {
+	if err = s.UserRepository.Insert(ctx, newUser); err != nil {
 		log.CtxError(ctx, "failed to insert user: %v", err)
 		return nil, err
 	}
@@ -64,19 +66,19 @@ func (s *UserService) Login(ctx context.Context, req *user.LoginReq) (*user.Logi
 	var newUser *model.User
 
 	// 获取用户
-	if newUser, err = s.UserMapper.FindUserByEmail(ctx, req.Email); err != nil {
+	if newUser, err = s.UserRepository.FindUserByEmail(ctx, req.Email); err != nil {
 		log.CtxError(ctx, "failed to find user: %v", err)
 		return nil, err
 	}
 
 	// 校验密码是否正确
-	if !security.ComparePassword(req.Password, newUser.Password) {
+	if !security.ComparePassword(newUser.Password, req.Password) {
 		log.CtxInfo(ctx, "username or password incorrect")
 		return nil, errors.New("username or password incorrect")
 	}
 
 	// 更新最后登录时间
-	if err = s.UserMapper.UpdateLastLoginAt(ctx, newUser.ID, time.Now()); err != nil {
+	if err = s.UserRepository.UpdateLastLoginAt(ctx, newUser.ID, time.Now()); err != nil {
 		log.CtxError(ctx, "failed to update last login at: %v", err)
 		return nil, err
 	}
@@ -92,5 +94,45 @@ func (s *UserService) Login(ctx context.Context, req *user.LoginReq) (*user.Logi
 		Resp:        dto.Success(),
 		AccessToken: token,
 		UserID:      newUser.ID,
+	}, nil
+}
+
+func (s *UserService) GetMyProfile(ctx context.Context) (*user.GetMyProfileResp, error) {
+	var err error
+	var userModel *model.User
+
+	// 获取用户ID并转换类型
+	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	if !ok {
+		return nil, errors.New("invalid user id in context")
+	}
+
+	// 获取用户信息
+	userModel, err = s.UserRepository.FindUserByUserID(ctx, userId)
+	if err != nil {
+		log.CtxError(ctx, "failed to find user: %v", err)
+		return nil, err
+	}
+
+	userVO := user.UserVO{
+		Email:       userModel.Email,
+		Username:    userModel.Username,
+		Avatar:      userModel.Avatar,
+		FirstName:   userModel.FirstName,
+		LastName:    userModel.LastName,
+		Gender:      userModel.Gender,
+		Phone:       userModel.Phone,
+		Role:        userModel.Role,
+		Status:      userModel.Status,
+		Address:     userModel.Address,
+		Bio:         userModel.Bio,
+		Birthday:    userModel.Birthday,
+		LastLoginAt: userModel.LastLoginAt,
+		CreatedAt:   userModel.CreatedAt,
+	}
+
+	return &user.GetMyProfileResp{
+		Resp:   dto.Success(),
+		UserVO: &userVO,
 	}, nil
 }

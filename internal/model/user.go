@@ -15,7 +15,7 @@ type User struct {
 	Phone       string             `bson:"phone"`
 	Avatar      string             `bson:"avatar"`
 	Address     string             `bson:"address"`
-	Rule        int                `bson:"rule"`
+	Role        int                `bson:"role"`
 	Status      int                `bson:"status"`
 	Gender      int                `bson:"gender"`
 	Birthday    time.Time          `bson:"birthday"`

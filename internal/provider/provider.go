@@ -35,7 +35,7 @@ var ApplicationSet = wire.NewSet(
 
 var InfrastructureSet = wire.NewSet(
 	config.NewConfig,
-	repository.NewRepository,
+	repository.NewUserRepository,
 )
 
 var AllProvider = wire.NewSet(

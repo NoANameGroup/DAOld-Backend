@@ -21,13 +21,14 @@ type IUserRepository interface {
 	Insert(ctx context.Context, user *model.User) error
 	FindUserByEmail(ctx context.Context, email string) (*model.User, error)
 	UpdateLastLoginAt(ctx context.Context, userID primitive.ObjectID, t time.Time) error
+	FindUserByUserID(ctx context.Context, userID primitive.ObjectID)
 }
 
 type UserRepository struct {
 	conn *monc.Model
 }
 
-func NewRepository(config *config.Config) *UserRepository {
+func NewUserRepository(config *config.Config) *UserRepository {
 	conn := monc.MustNewModel(config.Mongo.URL, config.Mongo.DB, CollectionName, config.Cache)
 	return &UserRepository{
 		conn: conn,
@@ -58,22 +59,35 @@ func (r *UserRepository) Insert(ctx context.Context, user *model.User) error {
 
 func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*model.User, error) {
 	var err error
-	var user *model.User
-	if err = r.conn.FindOneNoCache(ctx, bson.M{consts.Email: email}, &user); err != nil {
+	user := model.User{}
+	log.CtxInfo(ctx, "FindUserByEmail in collection=%s, filter=%+v", CollectionName, bson.M{consts.Email: email})
+
+	if err = r.conn.FindOneNoCache(ctx, &user, bson.M{consts.Email: email}); err != nil {
 		log.CtxError(ctx, "failed to find user by email: %v", err)
 		return nil, err
 	}
 
-	return user, nil
+	return &user, nil
 }
 
 func (r *UserRepository) UpdateLastLoginAt(ctx context.Context, userID primitive.ObjectID, t time.Time) error {
-	update := bson.M{"$set": bson.M{"lastLoginAt": t}}
-
-	if _, err := r.conn.UpdateByIDNoCache(ctx, userID, update); err != nil {
+	if _, err := r.conn.UpdateByIDNoCache(ctx, userID, bson.M{"$set": bson.M{consts.LastLoginAt: t}}); err != nil {
 		log.CtxError(ctx, "failed to update LastLoginAt for user %s: %v", userID.Hex(), err)
 		return err
 	}
 
 	return nil
+}
+
+func (r *UserRepository) FindUserByUserID(ctx context.Context, userId primitive.ObjectID) (*model.User, error) {
+	var err error
+	user := model.User{}
+	log.CtxInfo(ctx, "FindUserByUserID in collection=%s, filter=%+v", CollectionName, bson.M{consts.UserID: userId})
+
+	if err = r.conn.FindOneNoCache(ctx, &user, bson.M{consts.ID: userId}); err != nil {
+		log.CtxError(ctx, "failed to find user by userId: %v", err)
+		return nil, err
+	}
+
+	return &user, nil
 }

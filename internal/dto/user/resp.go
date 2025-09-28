@@ -14,3 +14,8 @@ type LoginResp struct {
 	UserID      primitive.ObjectID `json:"userId"`
 	AccessToken string             `json:"accessToken"`
 }
+
+type GetMyProfileResp struct {
+	*dto.Resp
+	*UserVO
+}

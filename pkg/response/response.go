@@ -53,8 +53,43 @@ func makeResponse(resp any) map[string]any {
 	data := make(map[string]any)
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Type().Field(i)
-		if jsonTag := field.Tag.Get("json"); jsonTag != "" && field.Name != "Code" && field.Name != "Msg" {
-			if fieldValue := v.Field(i).Interface(); !reflect.ValueOf(fieldValue).IsZero() {
+		fieldValue := v.Field(i).Interface()
+		
+		// 跳过零值字段
+		if reflect.ValueOf(fieldValue).IsZero() {
+			continue
+		}
+		
+		// 处理嵌入式结构体
+		if field.Anonymous {
+			// 如果是嵌入式指针结构体，需要解引用
+			if field.Type.Kind() == reflect.Ptr {
+				if !v.Field(i).IsNil() {
+					embeddedValue := v.Field(i).Elem()
+					for j := 0; j < embeddedValue.NumField(); j++ {
+						embeddedField := embeddedValue.Type().Field(j)
+						if jsonTag := embeddedField.Tag.Get("json"); jsonTag != "" {
+							data[jsonTag] = embeddedValue.Field(j).Interface()
+						} else {
+							data[embeddedField.Name] = embeddedValue.Field(j).Interface()
+						}
+					}
+				}
+			} else {
+				// 非指针嵌入式结构体
+				embeddedValue := v.Field(i)
+				for j := 0; j < embeddedValue.NumField(); j++ {
+					embeddedField := embeddedValue.Type().Field(j)
+					if jsonTag := embeddedField.Tag.Get("json"); jsonTag != "" {
+						data[jsonTag] = embeddedValue.Field(j).Interface()
+					} else {
+						data[embeddedField.Name] = embeddedValue.Field(j).Interface()
+					}
+				}
+			}
+		} else {
+			// 处理普通字段
+			if jsonTag := field.Tag.Get("json"); jsonTag != "" && field.Name != "Code" && field.Name != "Msg" {
 				data[jsonTag] = fieldValue
 			}
 		}

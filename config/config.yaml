@@ -1,59 +1,62 @@
-Name: Meowpick-Backend
+Name: DAOld-Backend
 ListenOn: :8080
 State: test
 Auth:
   SecretKey: |
     -----BEGIN PRIVATE KEY-----
-    MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDC2r3yi0XFiE8o
-    fB7xq73fqBWIyT655x3xoh2G/2FcrvHnNxfSAmALTM4ChtpcuO3bbDgDgsk0APz3
-    4RPmQRkbzgBF1I88zePfQFcAhpAuvINKfzzR+oCylp+Cw+Wc7dFQJQ/NAdTkUetA
-    eAAffoA1VhPZrc30Wa3iGx2A3pwn/97PxjmB/Sw87Z8aC1EU6f8nvELhTinLIv3K
-    qjRZ2lQl8uwrBA9Q29OXWYsZQ9nYMAo+2CoGuV0xYDOPlR/HEHiPArXfVFFSi6pY
-    kr5wGgFK7w6wxD0UEcej5FcnR/4fBncNAN+uRIIUqGQRifaOYhSc849OFtY2p72s
-    RqWzOY8/AgMBAAECggEANqdAC93Aji0zdrmJvGNdeHQexiUcMOyAW5wLCChtWJ/B
-    PgcX6VG9Oq4qQk8sxEEihh8Ofv2aDboROj2pZTXxIvle3jdGjdl6Bs53GLCllFZP
-    xP93QbYvjufsibMEnkWeJgqfKfNPkVLg105RSoQi1dL08mNrlxPoT7knR1QpHJaM
-    P5IQ6A4V1+WGIQXFZPXEkQLdl2oSGiRC84T7js50wmu+gkKSDeZN+t1KdDy9EFy6
-    XgE7b+aDh/jNPeJkNFfTbJYMxiDU2cDqx9hoAPUTZZ+7nZ/eP4ChDNK90qQVenHG
-    BxgiuSjUYGkKUdZ+L/D8qDAX6HLRrCp/gCZPGp/4UQKBgQD1kgf8xIGmZvxLNoIi
-    vLDQSEG63zTU6PLZVqKMNptle6F/ydrOeIAjReENmwJyijt4kASCk11NPQisU/sv
-    C560sAP4njhuAXaJ6BFOSN9iBxfrX2QWtD0A/84s/FunfXJwUHFuya2jd13t4X7R
-    udeLbMqF4qUx+4ljChOjtqoo3QKBgQDLIUzsWo++6E6NbRrZIY8W4WFtUiBUWfPL
-    /n1guYOuLDDu9LaMhB/qy0FvBBocuc5tfcE5FHbIFgowxDofp6PnhIHFMKcyWzlw
-    pX51u5azSCRUhAxJCFwGJ3lCBMsUcbyS/m5hsd/oUWYN3V0PZ6yJVsErnbWEtxBD
-    0Axp1rFIywKBgQCRj8kaRGTRfRQphRroek6Yd2w2193aImbo+1iIoknEgt78/2qq
-    nnTd86ruRKbTvCp6UWvK9o0EnpwIghNPFKUzV25TLX4nfsiEAEJZ1ApNcgT0qOuM
-    JbRPZlIRCllN06dE+fnzAKrjTXso6VQh/vXMGGWHrQvcr8wFH9D6ZulAJQKBgQCs
-    pMfxVmM4Gc+xyhp4k1o/Ux1wQc3yg2V/avP7ApGVtj98yQZiVWWfNFOP3IepBI8b
-    ZjeUoPz3wCu3GQBhqSTYgDmfdGOWnAws3quluuMxy039eyHJ7M3x+RjJcLN909E3
-    igIdDIZGuPApNoyCrFXrgI272VXOz5yGVkxGpE+XkwKBgFi54ACGxgT2dtK4+gUM
-    sa3eWCsA+Maifn634unHgH5heEWPbDgZBshXE7ZEkpzMzeCoD6CxCXvXuwngcbMG
-    v00EJdJdhunMwVGRXtq3x6dOTUI371r9fK548wx4kcXkOmXmqvXFINwHKBjH2vGs
-    LwrvZWSGKarLV19QwE74Lgyk
+    MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDdsgGlcAZjPACM
+    CJOOGu3Md+3BbzorhngBq69U/4v6VxxEOZKqL6szPuxrzvgz3eXQ+WvPHw7vUKyA
+    +EU5jgPPYjVwGIeP/BTBw4o8G9tD6PWBWANyja0LMxfkVCYZwVUVX8SO0RpGPiQv
+    Klp5UkeVBjdyxvQ6FZ+aO8VvVK80rxoio7HSs2fPDJBx31gKlXLPEmeNUkLBIbFe
+    7ChaIduRRWHZ2/V0KEbrijbTqgiu8S8Kx08zyGI1zzGwyDPqI+V5TGLSt3j9JHew
+    Tg9HdeDDZAJFdUIjpCAmuYks4VBLnA7xg6qqLg+na7YhZT7AcgwH7m8BKL+XwOov
+    v1SIrnxzAgMBAAECggEABmUkpAOTw5gPAfsbWo2PT4ckHiDZwjiqTI4JzD9k589M
+    evFYOD2QyDUn98IsKb7casdPI1XnheLDXyMKSCs/E+Pm27lxa6dfZ+l+mtZI4HAf
+    aOBDlTHeDIUoSsdcpACONkQhdOc2RVF0lMG5g2dqtjNMNSzlDanjBT11KA1+0luu
+    +qB0hywEfZFtPJi0gZqJQmytJAF25bH7CAXmGLKlK9Ump+kuox/0hNYOEP3uZe9l
+    pZ4q9Y27KzfVDaGo3C1Cp+ZxMP5WN1b0JZQwxhxQbOPyr2CYpZSTvFjszW8yenA2
+    vDaPlGGqu/TQmducy8PMulIAbWp9psZttZkWGoADcQKBgQDnFUm8gfjCWkJqq/h0
+    LIcmMcvCfJKHFD76Z1SiaI73iB5sdbzxgT9RUUnW4YtzkNaebZu9z4+pW/TZL+nc
+    dS99XHf44xoZl9Xw/3O5EIH48B1V5f+NUNExDNgkPekgB5S+q66YWTX4GVqny4XP
+    vGO78e0SNHT9r5zXjDIzMIRPYwKBgQD1mZTXpHn21BCFge6YQ773GxWMZTumZMtT
+    O/xBRpS8kMsU7yU86qMiUUDcp9hioFT8IW1NC5FArZKKIzNzTnsZNleMvv9Q80Pl
+    4eUN7jk7jRTDWWVRZ+JlZTdt9SGAaZR1hYEkmt8pAbQWKoLs1PyTGX645Gkin8BX
+    skV4ELfTsQKBgEIiMYwllk/pDQECXoTBCZzAu5PZmwXVoYCAehRQ4DmvVyWrPHvR
+    hZF8NimtOv/D/+gvblcQRAkwLA7MS52wW/sAr8UnGZ0hezURpsjcFJZuAbdHr699
+    5aCoEGOu5D0qbkNzVvB695sdhnhnItClFdYAEt0W7jR8QeLeWK+VvwgJAoGAVxWc
+    B1KUxIaxTQWjWm47GleKLnv+yKNYzSyp52Nlfe9BcyzQ4Wa5bYOuIg+J1H7RY41e
+    ukDtwidJnJ2asroTP/9az9cxpLx9SNfuZiAgPxNpV1Mtb84MIrPfEagntua482rh
+    Pd+EXX/zISD1x5BF9srFej3TYamPhAj8RPR4miECgYABC7kJv95anr6+qpddisqf
+    MbRR7itlWz131i0LdyJvjJ/lyDLk9FR0RTAsX9fa19oYEqnYpvP8VI4PcXhomlBK
+    OYpYhsWCrsv4T380O9avfxjwq1vcvnfNwF4/0+Sg0mwZ3OyA5hJiP/lh6kgzSwGW
+    PDtXCCuSpcv+hDoaVq8HwQ==
     -----END PRIVATE KEY-----
   PublicKey: |
     -----BEGIN PUBLIC KEY-----
-    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwtq98otFxYhPKHwe8au9
-    36gViMk+uecd8aIdhv9hXK7x5zcX0gJgC0zOAobaXLjt22w4A4LJNAD89+ET5kEZ
-    G84ARdSPPM3j30BXAIaQLryDSn880fqAspafgsPlnO3RUCUPzQHU5FHrQHgAH36A
-    NVYT2a3N9Fmt4hsdgN6cJ//ez8Y5gf0sPO2fGgtRFOn/J7xC4U4pyyL9yqo0WdpU
-    JfLsKwQPUNvTl1mLGUPZ2DAKPtgqBrldMWAzj5UfxxB4jwK131RRUouqWJK+cBoB
-    Su8OsMQ9FBHHo+RXJ0f+HwZ3DQDfrkSCFKhkEYn2jmIUnPOPThbWNqe9rEalszmP
-    PwIDAQAB
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3bIBpXAGYzwAjAiTjhrt
+    zHftwW86K4Z4AauvVP+L+lccRDmSqi+rMz7sa874M93l0Plrzx8O71CsgPhFOY4D
+    z2I1cBiHj/wUwcOKPBvbQ+j1gVgDco2tCzMX5FQmGcFVFV/EjtEaRj4kLypaeVJH
+    lQY3csb0OhWfmjvFb1SvNK8aIqOx0rNnzwyQcd9YCpVyzxJnjVJCwSGxXuwoWiHb
+    kUVh2dv1dChG64o206oIrvEvCsdPM8hiNc8xsMgz6iPleUxi0rd4/SR3sE4PR3Xg
+    w2QCRXVCI6QgJrmJLOFQS5wO8YOqqi4Pp2u2IWU+wHIMB+5vASi/l8DqL79UiK58
+    cwIDAQAB
     -----END PUBLIC KEY-----
   AccessExpire: 86400
+
 Log:
   Encoding: json
   Level: info
   Stat: false
+
 Mongo:
-#  URL: "mongodb://boyuan-meowpick:boyuan-it-club-meowpick@localhost:27017/your_db?authSource=admin"
-  URL: "mongodb://localhost:27017"
-  DB: "meowpick"
+  URL: "mongodb://noanamegroup:noanamegroup-daold@localhost:27018/?readConcernLevel=majority"
+  DB: "daold"
+
 Cache:
-  - Host: "localhost:6379"
-    Password: "boyuan-it-club-meowpick"
+  - Host: "localhost:6380"
+    Password: "noanamegroup-daold"
+
 Redis:
-  Host: "localhost:6379"
-  Password: "boyuan-it-club-meowpick"
+  Host: "localhost:6380"
+  Password: "noanamegroup-daold"
   DB: 0
