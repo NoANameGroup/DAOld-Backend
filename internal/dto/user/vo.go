@@ -15,7 +15,7 @@ type UserVO struct {
 	Role        string    `json:"role"`
 	Status      string    `json:"status"`
 	Gender      string    `json:"gender"`
-	Birthday    time.Time `json:"birthday"`
+	Birthday    string    `json:"birthday"`
 	Bio         string    `json:"bio"`
 	LastLoginAt time.Time `json:"lastLoginAt"`
 	CreatedAt   time.Time `json:"createdAt"`

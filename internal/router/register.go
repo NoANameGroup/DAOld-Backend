@@ -14,6 +14,7 @@ func SetupRoutes() *gin.Engine {
 		userGroup.POST("/register", handler.Register)
 		userGroup.POST("/login", handler.Login)
 		userGroup.GET("/me", handler.GetMyProfile)
+		userGroup.PATCH("/me", handler.UpdateMyProfile)
 		userGroup.PATCH("/me/password", handler.ChangePassword)
 		userGroup.DELETE("/me", handler.DeleteAccount)
 	}

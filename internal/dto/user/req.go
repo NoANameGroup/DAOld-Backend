@@ -21,3 +21,7 @@ type DeleteAccountReq struct {
 	Password     string `json:"password"`
 	Confirmation string `json:"confirmation"`
 }
+
+type UpdateMyProfileReq struct {
+	*UserVO
+}

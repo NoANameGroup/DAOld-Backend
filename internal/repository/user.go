@@ -24,6 +24,7 @@ type IUserRepository interface {
 	FindUserByUserID(ctx context.Context, userId primitive.ObjectID)
 	UpdatePassword(ctx context.Context, userId primitive.ObjectID, password string) error
 	DeleteUser(ctx context.Context, userId primitive.ObjectID) error
+	UpdateUser(ctx context.Context, userId primitive.ObjectID, update bson.M) error
 }
 
 type UserRepository struct {
@@ -109,5 +110,13 @@ func (r *UserRepository) DeleteUser(ctx context.Context, userId primitive.Object
 		return err
 	}
 
+	return nil
+}
+
+func (r *UserRepository) UpdateUser(ctx context.Context, userId primitive.ObjectID, update bson.M) error {
+	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": update}); err != nil {
+		log.CtxError(ctx, "failed to update user %s: %v", userId.Hex(), err)
+		return err
+	}
 	return nil
 }

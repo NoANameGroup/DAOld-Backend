@@ -15,6 +15,7 @@ import (
 	"github.com/NoANameGroup/DAOld-Backend/pkg/security"
 	"github.com/google/wire"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"time"
 )
 
@@ -24,6 +25,7 @@ type IUserService interface {
 	GetMyProfile(ctx context.Context) (*user.GetMyProfileResp, error)
 	ChangePassword(ctx context.Context, req *user.ChangePasswordReq) (*user.ChangePasswordResp, error)
 	DeleteAccount(ctx context.Context, req *user.DeleteAccountReq) (*user.DeleteAccountResp, error)
+	UpdateMyProfile(ctx context.Context, req *user.UpdateMyProfileReq) (*user.UpdateMyProfileResp, error)
 }
 
 type UserService struct {
@@ -134,7 +136,7 @@ func (s *UserService) GetMyProfile(ctx context.Context) (*user.GetMyProfileResp,
 			Phone:       userModel.Phone,
 			Address:     userModel.Address,
 			Bio:         userModel.Bio,
-			Birthday:    userModel.Birthday,
+			Birthday:    userModel.Birthday.Format("2006-01-02"),
 			LastLoginAt: userModel.LastLoginAt,
 			CreatedAt:   userModel.CreatedAt,
 		},
@@ -229,5 +231,63 @@ func (s *UserService) DeleteAccount(ctx context.Context, req *user.DeleteAccount
 
 	return &user.DeleteAccountResp{
 		Resp: dto.Success(),
+	}, nil
+}
+
+func (s *UserService) UpdateMyProfile(ctx context.Context, req *user.UpdateMyProfileReq) (*user.UpdateMyProfileResp, error) {
+	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	if !ok {
+		return nil, errors.New("invalid user id in context")
+	}
+
+	update := bson.M{}
+	cnt := 0
+
+	if req.Username != "" {
+		update[consts.Username] = req.Username
+		cnt++
+	}
+	if req.Avatar != "" {
+		update[consts.Avatar] = req.Avatar
+		cnt++
+	}
+	if req.FirstName != "" {
+		update[consts.FirstName] = req.FirstName
+		cnt++
+	}
+	if req.LastName != "" {
+		update[consts.LastName] = req.LastName
+		cnt++
+	}
+	if req.Gender != "" {
+		update[consts.Gender] = enum.GetUserGenderCode(req.Gender)
+		cnt++
+	}
+	if req.Address != "" {
+		update[consts.Address] = req.Address
+		cnt++
+	}
+	if req.Bio != "" {
+		update[consts.Bio] = req.Bio
+		cnt++
+	}
+	if req.Birthday != "" {
+		t, err := time.Parse("2006-01-02", req.Birthday)
+		if err != nil {
+			return nil, errors.New("invalid birthday format, use yyyy-MM-dd")
+		}
+		update[consts.Birthday] = t
+		cnt++
+	}
+
+	update[consts.UpdatedAt] = time.Now()
+
+	if err := s.UserRepository.UpdateUser(ctx, userId, update); err != nil {
+		return nil, err
+	}
+
+	return &user.UpdateMyProfileResp{
+		Resp:  dto.Success(),
+		Count: cnt,
 	}, nil
 }

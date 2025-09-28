@@ -27,3 +27,8 @@ type ChangePasswordResp struct {
 type DeleteAccountResp struct {
 	*dto.Resp
 }
+
+type UpdateMyProfileResp struct {
+	*dto.Resp
+	Count int `json:"count"`
+}

@@ -81,3 +81,18 @@ func DeleteAccount(c *gin.Context) {
 	resp, err = provider.Get().UserService.DeleteAccount(c, &req)
 	response.PostProcess(c, &req, resp, err)
 }
+
+func UpdateMyProfile(c *gin.Context) {
+	var err error
+	var req user.UpdateMyProfileReq
+	var resp *user.UpdateMyProfileResp
+
+	if err = c.ShouldBindJSON(&req); err != nil {
+		response.PostProcess(c, &req, resp, err)
+		return
+	}
+
+	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
+	resp, err = provider.Get().UserService.UpdateMyProfile(c, &req)
+	response.PostProcess(c, &req, resp, err)
+}
