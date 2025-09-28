@@ -2,10 +2,12 @@ package jwt
 
 import (
 	"errors"
+	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
+	"strings"
 	"time"
 
-	"github.com/NoANameGroup/DAOld-Backend/consts"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -60,4 +62,18 @@ func ExtractUserID(tokenStr string) (primitive.ObjectID, error) {
 	}
 
 	return objectId, nil
+}
+
+// ExtractUserIDFromContext 从 gin.Context 中提取用户ID
+func ExtractUserIDFromContext(c *gin.Context) primitive.ObjectID {
+	authHeader := c.GetHeader("Authorization")
+	if !strings.HasPrefix(authHeader, "Bearer ") {
+		err := errors.New("missing or malformed authorization header")
+		log.CtxError(c.Request.Context(), "ExtractUserIDFromContext: %v", err)
+		return primitive.NilObjectID
+	}
+
+	tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+	userId, _ := ExtractUserID(tokenStr)
+	return userId
 }

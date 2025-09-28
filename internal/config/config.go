@@ -35,7 +35,7 @@ func NewConfig() (*Config, error) {
 	c := new(Config)
 	path := os.Getenv("CONFIG_PATH")
 	if path == "" {
-		path = "etc/config.yaml"
+		path = "config/config.yaml"
 	}
 	err := conf.Load(path, c)
 	if err != nil {

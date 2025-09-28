@@ -14,3 +14,21 @@ type LoginResp struct {
 	UserID      primitive.ObjectID `json:"userId"`
 	AccessToken string             `json:"accessToken"`
 }
+
+type GetMyProfileResp struct {
+	*dto.Resp
+	*UserVO
+}
+
+type ChangePasswordResp struct {
+	*dto.Resp
+}
+
+type DeleteAccountResp struct {
+	*dto.Resp
+}
+
+type UpdateMyProfileResp struct {
+	*dto.Resp
+	Count int `json:"count"`
+}

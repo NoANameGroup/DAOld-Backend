@@ -19,9 +19,9 @@ func NewProvider() (*Provider, error) {
 	if err != nil {
 		return nil, err
 	}
-	userRepository := repository.NewRepository(configConfig)
+	userRepository := repository.NewUserRepository(configConfig)
 	userService := service.UserService{
-		UserMapper: userRepository,
+		UserRepository: userRepository,
 	}
 	providerProvider := &Provider{
 		Config:      configConfig,

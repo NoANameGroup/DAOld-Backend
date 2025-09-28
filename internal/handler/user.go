@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto/user"
+	"github.com/NoANameGroup/DAOld-Backend/internal/jwt"
 	"github.com/NoANameGroup/DAOld-Backend/internal/provider"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/response"
 	"github.com/gin-gonic/gin"
@@ -36,5 +38,61 @@ func Login(c *gin.Context) {
 	}
 
 	resp, err = provider.Get().UserService.Login(c, &req)
+	response.PostProcess(c, &req, resp, err)
+}
+
+// GetMyProfile .
+// @router /api/users/me [GET]
+func GetMyProfile(c *gin.Context) {
+	var err error
+	var resp *user.GetMyProfileResp
+
+	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
+	resp, err = provider.Get().UserService.GetMyProfile(c)
+	response.PostProcess(c, nil, resp, err)
+}
+
+func ChangePassword(c *gin.Context) {
+	var err error
+	var req user.ChangePasswordReq
+	var resp *user.ChangePasswordResp
+
+	if err = c.ShouldBindJSON(&req); err != nil {
+		response.PostProcess(c, &req, resp, err)
+		return
+	}
+
+	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
+	resp, err = provider.Get().UserService.ChangePassword(c, &req)
+	response.PostProcess(c, &req, resp, err)
+}
+
+func DeleteAccount(c *gin.Context) {
+	var err error
+	var req user.DeleteAccountReq
+	var resp *user.DeleteAccountResp
+
+	if err = c.ShouldBindJSON(&req); err != nil {
+		response.PostProcess(c, &req, resp, err)
+		return
+	}
+
+	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
+	resp, err = provider.Get().UserService.DeleteAccount(c, &req)
+	response.PostProcess(c, &req, resp, err)
+}
+
+func UpdateMyProfile(c *gin.Context) {
+	var err error
+	var req user.UpdateMyProfileReq
+	var resp *user.UpdateMyProfileResp
+
+	if err = c.ShouldBindJSON(&req); err != nil {
+		response.PostProcess(c, &req, resp, err)
+		return
+	}
+
+	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
+	resp, err = provider.Get().UserService.UpdateMyProfile(c, &req)
 	response.PostProcess(c, &req, resp, err)
 }
