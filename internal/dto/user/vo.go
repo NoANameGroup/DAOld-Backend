@@ -12,9 +12,9 @@ type UserVO struct {
 	Phone       string    `json:"phone"`
 	Avatar      string    `json:"avatar"`
 	Address     string    `json:"address"`
-	Role        int       `json:"role"`
-	Status      int       `json:"status"`
-	Gender      int       `json:"gender"`
+	Role        string    `json:"role"`
+	Status      string    `json:"status"`
+	Gender      string    `json:"gender"`
 	Birthday    time.Time `json:"birthday"`
 	Bio         string    `json:"bio"`
 	LastLoginAt time.Time `json:"lastLoginAt"`

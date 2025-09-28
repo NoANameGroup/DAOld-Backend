@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
+	"github.com/NoANameGroup/DAOld-Backend/internal/consts/enum"
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto"
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto/user"
 	"github.com/NoANameGroup/DAOld-Backend/internal/errorx"
@@ -50,6 +51,8 @@ func (s *UserService) Register(ctx context.Context, req *user.RegisterReq) (*use
 		Email:     req.Email,
 		Username:  req.Username,
 		Password:  hashPassword,
+		Role:      enum.RoleUser,
+		Status:    enum.StatusActive,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -125,10 +128,10 @@ func (s *UserService) GetMyProfile(ctx context.Context) (*user.GetMyProfileResp,
 			Avatar:      userModel.Avatar,
 			FirstName:   userModel.FirstName,
 			LastName:    userModel.LastName,
-			Gender:      userModel.Gender,
+			Gender:      enum.GetUserGenderDesc(userModel.Gender),
+			Role:        enum.GetUserRoleDesc(userModel.Role),
+			Status:      enum.GetUserStatusDesc(userModel.Status),
 			Phone:       userModel.Phone,
-			Role:        userModel.Role,
-			Status:      userModel.Status,
 			Address:     userModel.Address,
 			Bio:         userModel.Bio,
 			Birthday:    userModel.Birthday,

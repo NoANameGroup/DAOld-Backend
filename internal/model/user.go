@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/NoANameGroup/DAOld-Backend/internal/consts/enum"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -15,9 +16,9 @@ type User struct {
 	Phone       string             `bson:"phone"`
 	Avatar      string             `bson:"avatar"`
 	Address     string             `bson:"address"`
-	Role        int                `bson:"role"`
-	Status      int                `bson:"status"`
-	Gender      int                `bson:"gender"`
+	Role        enum.UserRole      `bson:"role"`
+	Status      enum.UserStatus    `bson:"status"`
+	Gender      enum.UserGender    `bson:"gender"`
 	Birthday    time.Time          `bson:"birthday"`
 	Bio         string             `bson:"bio"`
 	LastLoginAt time.Time          `bson:"lastLoginAt"`

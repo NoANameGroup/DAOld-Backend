@@ -22,6 +22,15 @@ func GetUserStatusDesc(code UserStatus) string {
 	return "未知状态"
 }
 
+func GetUserStatusCode(desc string) UserStatus {
+	for code, d := range UserStatusMap {
+		if d == desc {
+			return code
+		}
+	}
+	return 0
+}
+
 // Gender
 type UserGender int
 
@@ -44,6 +53,15 @@ func GetUserGenderDesc(code UserGender) string {
 	return "未知"
 }
 
+func GetUserGenderCode(desc string) UserGender {
+	for code, d := range UserGenderMap {
+		if d == desc {
+			return code
+		}
+	}
+	return 0
+}
+
 // Role
 type UserRole int
 
@@ -54,7 +72,7 @@ const (
 
 var UserRoleMap = map[UserRole]string{
 	RoleAdmin: "管理员",
-	RoleUser:  "普通用户",
+	RoleUser:  "用户",
 }
 
 func GetUserRoleDesc(code UserRole) string {
@@ -62,4 +80,13 @@ func GetUserRoleDesc(code UserRole) string {
 		return desc
 	}
 	return "无角色"
+}
+
+func GetUserRoleCode(desc string) UserRole {
+	for code, d := range UserRoleMap {
+		if d == desc {
+			return code
+		}
+	}
+	return 0
 }
