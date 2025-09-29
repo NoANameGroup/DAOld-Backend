@@ -32,3 +32,7 @@ type UpdateMyProfileResp struct {
 	*dto.Resp
 	Count int `json:"count"`
 }
+
+type LogoutResp struct {
+	*dto.Resp
+}

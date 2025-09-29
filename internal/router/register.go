@@ -17,6 +17,7 @@ func SetupRoutes() *gin.Engine {
 		userGroup.PATCH("/me", handler.UpdateMyProfile)
 		userGroup.PATCH("/me/password", handler.ChangePassword)
 		userGroup.DELETE("/me", handler.DeleteAccount)
+		userGroup.POST("/logout", handler.Logout)
 	}
 
 	return router

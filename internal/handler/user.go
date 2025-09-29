@@ -96,3 +96,11 @@ func UpdateMyProfile(c *gin.Context) {
 	resp, err = provider.Get().UserService.UpdateMyProfile(c, &req)
 	response.PostProcess(c, &req, resp, err)
 }
+
+func Logout(c *gin.Context) {
+	var err error
+	var resp *user.LogoutResp
+
+	resp, err = provider.Get().UserService.Logout()
+	response.PostProcess(c, nil, resp, err)
+}

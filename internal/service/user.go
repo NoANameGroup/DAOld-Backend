@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"errors"
+	"time"
+
 	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
 	"github.com/NoANameGroup/DAOld-Backend/internal/consts/enum"
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto"
@@ -16,7 +18,6 @@ import (
 	"github.com/google/wire"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"time"
 )
 
 type IUserService interface {
@@ -26,6 +27,7 @@ type IUserService interface {
 	ChangePassword(ctx context.Context, req *user.ChangePasswordReq) (*user.ChangePasswordResp, error)
 	DeleteAccount(ctx context.Context, req *user.DeleteAccountReq) (*user.DeleteAccountResp, error)
 	UpdateMyProfile(ctx context.Context, req *user.UpdateMyProfileReq) (*user.UpdateMyProfileResp, error)
+	Logout() (*user.LogoutResp, error)
 }
 
 type UserService struct {
@@ -289,5 +291,11 @@ func (s *UserService) UpdateMyProfile(ctx context.Context, req *user.UpdateMyPro
 	return &user.UpdateMyProfileResp{
 		Resp:  dto.Success(),
 		Count: cnt,
+	}, nil
+}
+
+func (s *UserService) Logout() (*user.LogoutResp, error) {
+	return &user.LogoutResp{
+		Resp: dto.Success(),
 	}, nil
 }
