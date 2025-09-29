@@ -25,3 +25,7 @@ type DeleteAccountReq struct {
 type UpdateMyProfileReq struct {
 	*UserVO
 }
+
+type UpdateUserRoleReq struct {
+	Role string `json:"role"`
+}

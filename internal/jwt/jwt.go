@@ -2,18 +2,18 @@ package jwt
 
 import (
 	"errors"
-	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
 	"strings"
 	"time"
 
+	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // GenerateToken generates a JWT token for a given UserID.
-func GenerateToken(userId primitive.ObjectID) (string, error) {
+func GenerateToken(userId bson.ObjectID) (string, error) {
 	claims := jwt.MapClaims{
 		"userId": userId.Hex(),
 		"exp":    time.Now().Add(24 * time.Hour).Unix(),
@@ -40,11 +40,11 @@ func ParseToken(tokenStr string) (*jwt.Token, error) {
 }
 
 // ExtractUserID extracts the user ID from a JWT token.
-func ExtractUserID(tokenStr string) (primitive.ObjectID, error) {
+func ExtractUserID(tokenStr string) (bson.ObjectID, error) {
 	token, err := ParseToken(tokenStr)
 	if err != nil || !token.Valid {
 		log.Error("ExtractUserID failed, invalid token: %v", err)
-		return primitive.NilObjectID, err
+		return bson.NilObjectID, err
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
@@ -52,25 +52,25 @@ func ExtractUserID(tokenStr string) (primitive.ObjectID, error) {
 	if !ok {
 		err = errors.New("invalid userId in token")
 		log.Error("ExtractUserID error: %v", err)
-		return primitive.NilObjectID, err
+		return bson.NilObjectID, err
 	}
 
-	objectId, err := primitive.ObjectIDFromHex(userIdStr)
+	objectId, err := bson.ObjectIDFromHex(userIdStr)
 	if err != nil {
 		log.Error("ExtractUserID invalid ObjectID: %v", err)
-		return primitive.NilObjectID, err
+		return bson.NilObjectID, err
 	}
 
 	return objectId, nil
 }
 
 // ExtractUserIDFromContext 从 gin.Context 中提取用户ID
-func ExtractUserIDFromContext(c *gin.Context) primitive.ObjectID {
+func ExtractUserIDFromContext(c *gin.Context) bson.ObjectID {
 	authHeader := c.GetHeader("Authorization")
 	if !strings.HasPrefix(authHeader, "Bearer ") {
 		err := errors.New("missing or malformed authorization header")
 		log.CtxError(c.Request.Context(), "ExtractUserIDFromContext: %v", err)
-		return primitive.NilObjectID
+		return bson.NilObjectID
 	}
 
 	tokenStr := strings.TrimPrefix(authHeader, "Bearer ")

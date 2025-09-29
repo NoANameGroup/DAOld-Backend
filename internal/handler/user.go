@@ -3,10 +3,12 @@ package handler
 import (
 	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto/user"
+	"github.com/NoANameGroup/DAOld-Backend/internal/errorx"
 	"github.com/NoANameGroup/DAOld-Backend/internal/jwt"
 	"github.com/NoANameGroup/DAOld-Backend/internal/provider"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/response"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // Register .
@@ -52,36 +54,8 @@ func GetMyProfile(c *gin.Context) {
 	response.PostProcess(c, nil, resp, err)
 }
 
-func ChangePassword(c *gin.Context) {
-	var err error
-	var req user.ChangePasswordReq
-	var resp *user.ChangePasswordResp
-
-	if err = c.ShouldBindJSON(&req); err != nil {
-		response.PostProcess(c, &req, resp, err)
-		return
-	}
-
-	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
-	resp, err = provider.Get().UserService.ChangePassword(c, &req)
-	response.PostProcess(c, &req, resp, err)
-}
-
-func DeleteAccount(c *gin.Context) {
-	var err error
-	var req user.DeleteAccountReq
-	var resp *user.DeleteAccountResp
-
-	if err = c.ShouldBindJSON(&req); err != nil {
-		response.PostProcess(c, &req, resp, err)
-		return
-	}
-
-	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
-	resp, err = provider.Get().UserService.DeleteAccount(c, &req)
-	response.PostProcess(c, &req, resp, err)
-}
-
+// UpdateMyProfile .
+// @router /api/users/me [PATCH]
 func UpdateMyProfile(c *gin.Context) {
 	var err error
 	var req user.UpdateMyProfileReq
@@ -97,10 +71,70 @@ func UpdateMyProfile(c *gin.Context) {
 	response.PostProcess(c, &req, resp, err)
 }
 
+// ChangePassword .
+// @router /api/users/me/password [PATCH]
+func ChangePassword(c *gin.Context) {
+	var err error
+	var req user.ChangePasswordReq
+	var resp *user.ChangePasswordResp
+
+	if err = c.ShouldBindJSON(&req); err != nil {
+		response.PostProcess(c, &req, resp, err)
+		return
+	}
+
+	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
+	resp, err = provider.Get().UserService.ChangePassword(c, &req)
+	response.PostProcess(c, &req, resp, err)
+}
+
+// DeleteAccount .
+// @router /api/users/me [DELETE]
+func DeleteAccount(c *gin.Context) {
+	var err error
+	var req user.DeleteAccountReq
+	var resp *user.DeleteAccountResp
+
+	if err = c.ShouldBindJSON(&req); err != nil {
+		response.PostProcess(c, &req, resp, err)
+		return
+	}
+
+	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
+	resp, err = provider.Get().UserService.DeleteAccount(c, &req)
+	response.PostProcess(c, &req, resp, err)
+}
+
+// Logout .
+// @router /api/users/logout [POST]
 func Logout(c *gin.Context) {
 	var err error
 	var resp *user.LogoutResp
 
 	resp, err = provider.Get().UserService.Logout()
 	response.PostProcess(c, nil, resp, err)
+}
+
+// UpdateUserRole .
+// @router /api/users/:userId/role [PATCH]
+func UpdateUserRole(c *gin.Context) {
+	var err error
+	var req user.UpdateUserRoleReq
+	var resp *user.UpdateUserRoleResp
+
+	if err = c.ShouldBindJSON(&req); err != nil {
+		response.PostProcess(c, &req, resp, err)
+		return
+	}
+
+	targetId, err := bson.ObjectIDFromHex(c.Param("userId"))
+	if err != nil {
+		response.PostProcess(c, &req, resp, errorx.New(10007, "invalid user id format"))
+		return
+	}
+
+	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
+	c.Set(consts.ContextTargetID, targetId)
+	resp, err = provider.Get().UserService.UpdateUserRole(c, &req)
+	response.PostProcess(c, &req, resp, err)
 }

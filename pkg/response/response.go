@@ -2,12 +2,13 @@ package response
 
 import (
 	"errors"
+	"net/http"
+	"reflect"
+
 	"github.com/NoANameGroup/DAOld-Backend/internal/errorx"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/lib"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"reflect"
 )
 
 // PostProcess 处理http响应, resp要求指针或接口类型
@@ -54,12 +55,12 @@ func makeResponse(resp any) map[string]any {
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Type().Field(i)
 		fieldValue := v.Field(i).Interface()
-		
+
 		// 跳过零值字段
 		if reflect.ValueOf(fieldValue).IsZero() {
 			continue
 		}
-		
+
 		// 处理嵌入式结构体
 		if field.Anonymous {
 			// 如果是嵌入式指针结构体，需要解引用
