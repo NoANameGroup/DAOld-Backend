@@ -1,7 +1,5 @@
 package consts
 
-var PageSize int = 10
-
 // 数据库相关
 const ()
 
@@ -12,7 +10,8 @@ const (
 
 // 业务相关
 const (
-	ContextUserID = "userId"
+	ContextUserID   = "userId"
+	ContextTargetID = "targetId"
 )
 
 // 数据库相关

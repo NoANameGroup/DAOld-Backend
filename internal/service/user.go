@@ -16,7 +16,6 @@ import (
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/security"
 	"github.com/google/wire"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -28,6 +27,7 @@ type IUserService interface {
 	DeleteAccount(ctx context.Context, req *user.DeleteAccountReq) (*user.DeleteAccountResp, error)
 	UpdateMyProfile(ctx context.Context, req *user.UpdateMyProfileReq) (*user.UpdateMyProfileResp, error)
 	Logout() (*user.LogoutResp, error)
+	UpdateUserRole(ctx context.Context, req *user.UpdateUserRoleReq) (*user.UpdateUserRoleResp, error)
 }
 
 type UserService struct {
@@ -51,7 +51,7 @@ func (s *UserService) Register(ctx context.Context, req *user.RegisterReq) (*use
 
 	// 创建用户
 	newUser := &model.User{
-		ID:        primitive.NewObjectID(),
+		ID:        bson.NewObjectID(),
 		Email:     req.Email,
 		Username:  req.Username,
 		Password:  hashPassword,
@@ -112,7 +112,7 @@ func (s *UserService) GetMyProfile(ctx context.Context) (*user.GetMyProfileResp,
 	var userModel *model.User
 
 	// 获取用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
 		return nil, errors.New("invalid user id in context")
 	}
@@ -151,7 +151,7 @@ func (s *UserService) ChangePassword(ctx context.Context, req *user.ChangePasswo
 	var hashPassword string
 
 	// 获取用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
 		return nil, errors.New("invalid user id in context")
 	}
@@ -193,6 +193,12 @@ func (s *UserService) ChangePassword(ctx context.Context, req *user.ChangePasswo
 		return nil, err
 	}
 
+	// 更新 updatedAt 字段
+	if err = s.UserRepository.UpdateUser(ctx, userId, bson.M{consts.UpdatedAt: time.Now()}); err != nil {
+		log.CtxError(ctx, "failed to update user: %v", err)
+		return nil, err
+	}
+
 	return &user.ChangePasswordResp{
 		Resp: dto.Success(),
 	}, nil
@@ -203,7 +209,7 @@ func (s *UserService) DeleteAccount(ctx context.Context, req *user.DeleteAccount
 	var userModel *model.User
 
 	// 获取用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
 		return nil, errors.New("invalid user id in context")
 	}
@@ -237,7 +243,8 @@ func (s *UserService) DeleteAccount(ctx context.Context, req *user.DeleteAccount
 }
 
 func (s *UserService) UpdateMyProfile(ctx context.Context, req *user.UpdateMyProfileReq) (*user.UpdateMyProfileResp, error) {
-	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	// 获取用户ID并转换类型
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
 		return nil, errors.New("invalid user id in context")
 	}
@@ -296,6 +303,45 @@ func (s *UserService) UpdateMyProfile(ctx context.Context, req *user.UpdateMyPro
 
 func (s *UserService) Logout() (*user.LogoutResp, error) {
 	return &user.LogoutResp{
+		Resp: dto.Success(),
+	}, nil
+}
+
+func (s *UserService) UpdateUserRole(ctx context.Context, req *user.UpdateUserRoleReq) (*user.UpdateUserRoleResp, error) {
+	// 获取当前用户ID并转换类型
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
+	if !ok {
+		return nil, errors.New("invalid user id in context")
+	}
+
+	// 检查是否有权限
+	if isAdmin, err := s.UserRepository.IsAdmin(ctx, userId); !isAdmin {
+		log.CtxError(ctx, "user is not admin")
+		return nil, errorx.New(10004, "用户无权限")
+	} else if err != nil {
+		log.CtxError(ctx, "failed to check user role: %v", err)
+		return nil, err
+	}
+
+	// 从路径参数获取用户ID
+	targetId, ok := ctx.Value(consts.ContextTargetID).(bson.ObjectID)
+	if !ok {
+		return nil, errors.New("invalid target id in context")
+	}
+
+	// 更新数据库
+	if err := s.UserRepository.UpdateUserRole(ctx, targetId, enum.GetUserRoleCode(req.Role)); err != nil {
+		log.CtxError(ctx, "failed to update user role: %v", err)
+		return nil, err
+	}
+
+	// 更新 updatedAt 字段
+	if err := s.UserRepository.UpdateUser(ctx, targetId, bson.M{consts.UpdatedAt: time.Now()}); err != nil {
+		log.CtxError(ctx, "failed to update user: %v", err)
+		return nil, err
+	}
+
+	return &user.UpdateUserRoleResp{
 		Resp: dto.Success(),
 	}, nil
 }

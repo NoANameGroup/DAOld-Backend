@@ -2,7 +2,7 @@ package user
 
 import (
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type RegisterResp struct {
@@ -11,8 +11,8 @@ type RegisterResp struct {
 
 type LoginResp struct {
 	*dto.Resp
-	UserID      primitive.ObjectID `json:"userId"`
-	AccessToken string             `json:"accessToken"`
+	UserID      bson.ObjectID `json:"userId"`
+	AccessToken string        `json:"accessToken"`
 }
 
 type GetMyProfileResp struct {
@@ -34,5 +34,9 @@ type UpdateMyProfileResp struct {
 }
 
 type LogoutResp struct {
+	*dto.Resp
+}
+
+type UpdateUserRoleResp struct {
 	*dto.Resp
 }
