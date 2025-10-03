@@ -29,16 +29,16 @@ type Provider struct {
 	UserService service.UserService
 }
 
-var ApplicationSet = wire.NewSet(
+var ServiceSet = wire.NewSet(
 	service.UserServiceSet,
 )
 
-var InfrastructureSet = wire.NewSet(
+var RepositorySet = wire.NewSet(
 	config.NewConfig,
 	repository.NewUserRepository,
 )
 
 var AllProvider = wire.NewSet(
-	ApplicationSet,
-	InfrastructureSet,
+	ServiceSet,
+	RepositorySet,
 )
