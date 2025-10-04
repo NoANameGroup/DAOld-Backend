@@ -6,7 +6,7 @@ import (
 	"github.com/NoANameGroup/DAOld-Backend/internal/errorx"
 	"github.com/NoANameGroup/DAOld-Backend/internal/jwt"
 	"github.com/NoANameGroup/DAOld-Backend/internal/provider"
-	"github.com/NoANameGroup/DAOld-Backend/pkg/response"
+	"github.com/NoANameGroup/DAOld-Backend/internal/response"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
