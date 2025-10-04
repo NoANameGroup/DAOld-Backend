@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
@@ -41,7 +40,17 @@ var UserServiceSet = wire.NewSet(
 
 func (s *UserService) Register(ctx context.Context, req *user.RegisterReq) (*user.RegisterResp, error) {
 	var err error
+	var isExist bool
 	var hashPassword string
+
+	// 检查邮箱是否已被注册
+	if isExist, err = s.UserRepository.IsEmailExist(ctx, req.Email); err != nil {
+		log.CtxError(ctx, "failed to check existing email: %v", err)
+		return nil, err
+	} else if isExist {
+		log.CtxInfo(ctx, "email already registered: %s", req.Email)
+		return nil, errorx.ErrEmailExisted
+	}
 
 	// 生成哈希密码
 	if hashPassword, err = security.HashPassword(req.Password); err != nil {
@@ -84,7 +93,7 @@ func (s *UserService) Login(ctx context.Context, req *user.LoginReq) (*user.Logi
 	// 校验密码是否正确
 	if !security.ComparePassword(newUser.Password, req.Password) {
 		log.CtxInfo(ctx, "username or password incorrect")
-		return nil, errors.New("username or password incorrect")
+		return nil, errorx.ErrUsernameOrPasswordIncorrect
 	}
 
 	// 更新最后登录时间
@@ -114,7 +123,7 @@ func (s *UserService) GetMyProfile(ctx context.Context) (*user.GetMyProfileResp,
 	// 获取用户ID并转换类型
 	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
-		return nil, errors.New("invalid user id in context")
+		return nil, errorx.ErrContextUserIDInvalid
 	}
 
 	// 获取用户信息
@@ -153,7 +162,7 @@ func (s *UserService) ChangePassword(ctx context.Context, req *user.ChangePasswo
 	// 获取用户ID并转换类型
 	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
-		return nil, errors.New("invalid user id in context")
+		return nil, errorx.ErrContextUserIDInvalid
 	}
 
 	// 获取用户
@@ -166,19 +175,19 @@ func (s *UserService) ChangePassword(ctx context.Context, req *user.ChangePasswo
 	// 校验旧密码是否正确
 	if !security.ComparePassword(userModel.Password, req.OldPassword) {
 		log.CtxInfo(ctx, "wrong password")
-		return nil, errorx.New(10001, "原密码错误")
+		return nil, errorx.ErrPasswordIncorrect
 	}
 
 	// 检查新旧密码是否相同
 	if req.NewPassword == req.OldPassword {
 		log.CtxInfo(ctx, "new password cannot be the same as old password")
-		return nil, errorx.New(10002, "新密码不能与原密码相同")
+		return nil, errorx.ErrOldAndNewPasswordSame
 	}
 
 	// 检查确认密码是否匹配
 	if req.NewPassword != req.ConfirmPassword {
 		log.CtxInfo(ctx, "confirm password does not match")
-		return nil, errorx.New(10003, "确认密码与新密码不匹配")
+		return nil, errorx.ErrConfirmPasswordNotMatch
 	}
 
 	// 生成哈希密码
@@ -211,7 +220,7 @@ func (s *UserService) DeleteAccount(ctx context.Context, req *user.DeleteAccount
 	// 获取用户ID并转换类型
 	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
-		return nil, errors.New("invalid user id in context")
+		return nil, errorx.ErrContextUserIDInvalid
 	}
 
 	// 获取用户
@@ -224,14 +233,16 @@ func (s *UserService) DeleteAccount(ctx context.Context, req *user.DeleteAccount
 	// 校验旧密码是否正确
 	if !security.ComparePassword(userModel.Password, req.Password) {
 		log.CtxInfo(ctx, "wrong password")
-		return nil, errors.New("wrong password")
+		return nil, errorx.ErrPasswordIncorrect
 	}
 
+	// 检查确认密码是否匹配
 	if req.Confirmation != "我确认删除账号 "+userModel.Username {
 		log.CtxInfo(ctx, "confirmation does not match")
-		return nil, errors.New("confirmation does not match")
+		return nil, errorx.ErrConfirmationNotMatch
 	}
 
+	// 删除用户
 	if err = s.UserRepository.DeleteUser(ctx, userId); err != nil {
 		log.CtxError(ctx, "failed to delete user: %v", err)
 		return nil, err
@@ -246,7 +257,7 @@ func (s *UserService) UpdateMyProfile(ctx context.Context, req *user.UpdateMyPro
 	// 获取用户ID并转换类型
 	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
-		return nil, errors.New("invalid user id in context")
+		return nil, errorx.ErrContextUserIDInvalid
 	}
 
 	update := bson.M{}
@@ -283,7 +294,7 @@ func (s *UserService) UpdateMyProfile(ctx context.Context, req *user.UpdateMyPro
 	if req.Birthday != "" {
 		t, err := time.Parse("2006-01-02", req.Birthday)
 		if err != nil {
-			return nil, errors.New("invalid birthday format, use yyyy-MM-dd")
+			return nil, errorx.ErrBirthdayFormatInvalid
 		}
 		update[consts.Birthday] = t
 		cnt++
@@ -311,13 +322,13 @@ func (s *UserService) UpdateUserRole(ctx context.Context, req *user.UpdateUserRo
 	// 获取当前用户ID并转换类型
 	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
-		return nil, errors.New("invalid user id in context")
+		return nil, errorx.ErrContextUserIDInvalid
 	}
 
 	// 检查是否有权限
 	if isAdmin, err := s.UserRepository.IsAdmin(ctx, userId); !isAdmin {
 		log.CtxError(ctx, "user is not admin")
-		return nil, errorx.New(10004, "用户无权限")
+		return nil, errorx.ErrUserPermissionsInsufficient
 	} else if err != nil {
 		log.CtxError(ctx, "failed to check user role: %v", err)
 		return nil, err
@@ -326,7 +337,7 @@ func (s *UserService) UpdateUserRole(ctx context.Context, req *user.UpdateUserRo
 	// 从路径参数获取用户ID
 	targetId, ok := ctx.Value(consts.ContextTargetID).(bson.ObjectID)
 	if !ok {
-		return nil, errors.New("invalid target id in context")
+		return nil, errorx.ErrContextUserIDInvalid
 	}
 
 	// 更新数据库

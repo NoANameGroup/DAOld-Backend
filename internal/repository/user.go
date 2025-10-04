@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/NoANameGroup/DAOld-Backend/internal/config"
@@ -19,6 +18,7 @@ const (
 )
 
 type IUserRepository interface {
+	IsEmailExist(ctx context.Context, email string) (bool, error)
 	Insert(ctx context.Context, user *model.User) error
 	FindUserByEmail(ctx context.Context, email string) (*model.User, error)
 	UpdateLastLoginAt(ctx context.Context, userId bson.ObjectID, t time.Time) error
@@ -41,20 +41,19 @@ func NewUserRepository(config *config.Config) *UserRepository {
 	}
 }
 
-func (r *UserRepository) Insert(ctx context.Context, user *model.User) error {
+func (r *UserRepository) IsEmailExist(ctx context.Context, email string) (bool, error) {
 	var err error
-	// 检查邮箱是否已存在
 	var count int64
-	if count, err = r.conn.CountDocuments(ctx, bson.M{consts.Email: user.Email}); err != nil {
+	if count, err = r.conn.CountDocuments(ctx, bson.M{consts.Email: email}); err != nil {
 		log.CtxError(ctx, "failed to check existing email: %v", err)
-		return err
-	}
-	if count > 0 {
-		log.CtxError(ctx, "user with email %s already exists", user.Email)
-		return errors.New("user with this email already exists")
+		return false, err
 	}
 
-	// 插入数据库
+	return count > 0, nil
+}
+
+func (r *UserRepository) Insert(ctx context.Context, user *model.User) error {
+	var err error
 	if _, err = r.conn.InsertOneNoCache(ctx, user); err != nil {
 		log.CtxError(ctx, "failed to insert user: %v", err)
 		return err

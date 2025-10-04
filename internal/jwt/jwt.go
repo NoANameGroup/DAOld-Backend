@@ -18,8 +18,12 @@ func GenerateToken(userId bson.ObjectID) (string, error) {
 		"userId": userId.Hex(),
 		"exp":    time.Now().Add(24 * time.Hour).Unix(),
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(consts.JWTSecret))
+	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(consts.JWTSecret))
+	if err != nil {
+		log.Error("GenerateToken failed for user %s: %v", userId.Hex(), err)
+		return "", err
+	}
+	return tokenString, nil
 }
 
 // ParseToken parses a JWT token and returns the claims.
@@ -43,7 +47,6 @@ func ParseToken(tokenStr string) (*jwt.Token, error) {
 func ExtractUserID(tokenStr string) (bson.ObjectID, error) {
 	token, err := ParseToken(tokenStr)
 	if err != nil || !token.Valid {
-		log.Error("ExtractUserID failed, invalid token: %v", err)
 		return bson.NilObjectID, err
 	}
 
@@ -73,7 +76,11 @@ func ExtractUserIDFromContext(c *gin.Context) bson.ObjectID {
 		return bson.NilObjectID
 	}
 
-	tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
-	userId, _ := ExtractUserID(tokenStr)
+	userId, err := ExtractUserID(strings.TrimPrefix(authHeader, "Bearer "))
+	if err != nil {
+		log.CtxInfo(c.Request.Context(), "Failed to extract user ID from token: %v", err)
+		return bson.NilObjectID
+	}
+
 	return userId
 }

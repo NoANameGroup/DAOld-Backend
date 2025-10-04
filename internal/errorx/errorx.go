@@ -59,69 +59,16 @@ func EndX(err error, code int, msg string) error {
 }
 
 // 定义常量错误
-// 登录认证相关
+// 用户相关
 var (
-	ErrTokenCreationFailed     = New(1001, "AuthToken creation failed")
-	ErrReqNoToken              = New(1002, "No token in request")
-	ErrTokenUninitialized      = New(1003, "Token uninitialized")
-	ErrAuthTokenCreationFailed = New(1004, "Auth token creation failed")
-	ErrTokenInvalid            = New(1005, "Token invalid")
-	ErrTokenExpired            = New(1006, "Token expired")
-	ErrWrongTokenFmt           = New(1007, "Invalid authorization header format")
-	ErrGetUserIDFailed         = New(1008, "Get userID from token failed")
-	ErrEmptyOpenID             = New(1009, "Empty openID")
-	ErrNotAuthentication       = New(1010, "User Not Authenticated")
-	ErrUserNotAdmin            = New(1011, "User Not Admin")
-)
-
-// 数据库相关
-var (
-	ErrUserNotFound    = New(2001, "User Not Found")
-	ErrInsertFailed    = New(2003, "Insert Failed")
-	ErrFindFailed      = New(2004, "FindManyByKeywords Operation Failed")
-	ErrUpdateFailed    = New(2005, "Update Failed")
-	ErrInvalidObjectID = New(2006, "Invalid Object ID")
-	ErrCountFailed     = New(2007, "Count Operation Failed")
-)
-
-// 邮箱服务相关
-var (
-	ErrEmailVerifyFailed    = New(3001, "Email verify failed")
-	ErrEmailCodeStoreFailed = New(3002, "Email Verify Code Store Failed")
-	ErrWrongEmailCode       = New(3003, "Wrong email code")
-	ErrEmailCodeExpired     = New(3004, "Email Verify Code Expired")
-	ErrEmailCodeNotExist    = New(3005, "Email Verify Code Do Not Exist")
-)
-
-// 点赞相关
-var (
-	ErrLikeFailed      = New(4001, "Like Failed")
-	ErrEmptyTargetID   = New(4001, "Empty Target ID")
-	ErrGetCountFailed  = New(4002, "Get Count Operation Failed")
-	ErrGetStatusFailed = New(4003, "Get Status Operation Failed")
-)
-
-// 业务相关
-var (
-	ErrInvalidParams          = New(5001, "Invalid Params")
-	ErrGetCourseIDFailed      = New(5002, "Get Course ID Failed")
-	ErrCountCourseTagsFailed  = New(5003, "Count Course Tags Failed")
-	ErrFindSuccessButNoResult = New(5004, "Find Success But No Result")
-)
-
-// 教师相关
-var (
-	ErrTeacherDuplicate = New(6001, "Teacher Duplicate")
-	ErrAddTeacherFailed = New(6002, "Add Teacher Failed")
-	ErrEmptyTeacherID   = New(6003, "Empty Teacher ID")
-)
-
-// dto相关
-var (
-	ErrCommentDB2VO = New(7001, "CommentDb to VO failed")
-	ErrCommentVO2DB = New(7002, "CommentVO to DB failed")
-	ErrCourseDB2VO  = New(7003, "CourseDB to VO failed")
-	ErrCourseVO2DB  = New(7004, "CourseVO to DB failed")
-	ErrTeacherDB2VO = New(7005, "Teacher DB to VO failed")
-	ErrTeacherVO2DB = New(7006, "Teacher DB to VO failed")
+	ErrEmailExisted                = New(1001, "邮箱已被注册")
+	ErrUsernameExisted             = New(1002, "用户名已被注册")
+	ErrUsernameOrPasswordIncorrect = New(1003, "用户名或密码错误")
+	ErrContextUserIDInvalid        = New(1004, "上下文中用户ID无效")
+	ErrPasswordIncorrect           = New(1005, "密码错误")
+	ErrOldAndNewPasswordSame       = New(1006, "新密码不能与原密码相同")
+	ErrConfirmPasswordNotMatch     = New(1007, "确认密码与新密码不匹配")
+	ErrConfirmationNotMatch        = New(1008, "确认信息不匹配")
+	ErrBirthdayFormatInvalid       = New(1009, "生日格式无效")
+	ErrUserPermissionsInsufficient = New(1010, "用户权限不足")
 )
