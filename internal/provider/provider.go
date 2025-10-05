@@ -1,4 +1,4 @@
-//go:generate wire .
+//go:generate wire gen .
 
 package provider
 
@@ -23,10 +23,11 @@ func Get() *Provider {
 	return provider
 }
 
-// Provider 提供controller依赖的对象
+// Provider 提供 handlers 依赖的对象
 type Provider struct {
-	Config      *config.Config
-	UserService service.UserService
+	Config         *config.Config
+	UserService    service.UserService
+	SessionService service.SessionService
 }
 
 var ServiceSet = wire.NewSet(

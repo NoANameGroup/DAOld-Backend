@@ -17,6 +17,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+var _ IUserService = (*UserService)(nil)
+
 type IUserService interface {
 	CreateUser(ctx context.Context, req *user.CreateUserReq) (*user.CreateUserResp, error)
 	GetMyProfile(ctx context.Context) (*user.GetMyProfileResp, error)

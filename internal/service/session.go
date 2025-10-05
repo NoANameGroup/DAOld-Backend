@@ -14,6 +14,8 @@ import (
 	"time"
 )
 
+var _ ISessionService = (*SessionService)(nil)
+
 type ISessionService interface {
 	CreateSession(ctx context.Context, req *session.CreateSessionReq) (*session.CreateSessionResp, error)
 	DeleteSession() (*session.DeleteSessionResp, error)
@@ -28,7 +30,7 @@ var SessionServiceSet = wire.NewSet(
 	wire.Bind(new(ISessionService), new(*SessionService)),
 )
 
-func (s *UserService) CreateSession(ctx context.Context, req *session.CreateSessionReq) (*session.CreateSessionResp, error) {
+func (s *SessionService) CreateSession(ctx context.Context, req *session.CreateSessionReq) (*session.CreateSessionResp, error) {
 	var err error
 	var token string
 	var newUser *model.User
@@ -65,7 +67,7 @@ func (s *UserService) CreateSession(ctx context.Context, req *session.CreateSess
 	}, nil
 }
 
-func (s *UserService) DeleteSession() (*session.DeleteSessionResp, error) {
+func (s *SessionService) DeleteSession() (*session.DeleteSessionResp, error) {
 	return &session.DeleteSessionResp{
 		Resp: dto.Success(),
 	}, nil

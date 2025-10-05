@@ -23,9 +23,13 @@ func NewProvider() (*Provider, error) {
 	userService := service.UserService{
 		UserRepository: userRepository,
 	}
+	sessionService := service.SessionService{
+		UserRepository: userRepository,
+	}
 	providerProvider := &Provider{
-		Config:      configConfig,
-		UserService: userService,
+		Config:         configConfig,
+		UserService:    userService,
+		SessionService: sessionService,
 	}
 	return providerProvider, nil
 }
