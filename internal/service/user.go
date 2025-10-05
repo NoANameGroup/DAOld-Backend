@@ -52,6 +52,15 @@ func (s *UserService) Register(ctx context.Context, req *user.RegisterReq) (*use
 		return nil, errorx.ErrEmailExisted
 	}
 
+	// 检查用户名是否已被注册
+	if isExist, err = s.UserRepository.IsUsernameExist(ctx, req.Username); err != nil {
+		log.CtxError(ctx, "failed to check existing username: %v", err)
+		return nil, err
+	} else if isExist {
+		log.CtxInfo(ctx, "username already registered: %s", req.Username)
+		return nil, errorx.ErrUsernameExisted
+	}
+
 	// 生成哈希密码
 	if hashPassword, err = security.HashPassword(req.Password); err != nil {
 		log.CtxError(ctx, "failed to hash password: %v", err)

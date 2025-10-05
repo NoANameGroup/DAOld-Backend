@@ -19,6 +19,7 @@ const (
 
 type IUserRepository interface {
 	IsEmailExist(ctx context.Context, email string) (bool, error)
+	IsUsernameExist(ctx context.Context, username string) (bool, error)
 	Insert(ctx context.Context, user *model.User) error
 	FindUserByEmail(ctx context.Context, email string) (*model.User, error)
 	UpdateLastLoginAt(ctx context.Context, userId bson.ObjectID, t time.Time) error
@@ -46,6 +47,17 @@ func (r *UserRepository) IsEmailExist(ctx context.Context, email string) (bool, 
 	var count int64
 	if count, err = r.conn.CountDocuments(ctx, bson.M{consts.Email: email}); err != nil {
 		log.CtxError(ctx, "failed to check existing email: %v", err)
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
+func (r *UserRepository) IsUsernameExist(ctx context.Context, username string) (bool, error) {
+	var err error
+	var count int64
+	if count, err = r.conn.CountDocuments(ctx, bson.M{consts.Username: username}); err != nil {
+		log.CtxError(ctx, "failed to check existing username: %v", err)
 		return false, err
 	}
 
