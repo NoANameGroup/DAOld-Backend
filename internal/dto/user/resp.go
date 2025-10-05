@@ -2,17 +2,10 @@ package user
 
 import (
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type RegisterResp struct {
+type CreateUserResp struct {
 	*dto.Resp
-}
-
-type LoginResp struct {
-	*dto.Resp
-	UserID      bson.ObjectID `json:"userId"`
-	AccessToken string        `json:"accessToken"`
 }
 
 type GetMyProfileResp struct {
@@ -20,11 +13,11 @@ type GetMyProfileResp struct {
 	*UserVO
 }
 
-type ChangePasswordResp struct {
+type UpdateMyPasswordResp struct {
 	*dto.Resp
 }
 
-type DeleteAccountResp struct {
+type DeleteMyAccountResp struct {
 	*dto.Resp
 }
 
@@ -33,10 +26,18 @@ type UpdateMyProfileResp struct {
 	Count int `json:"count"`
 }
 
-type LogoutResp struct {
+type UpdateUserRoleResp struct {
 	*dto.Resp
 }
 
-type UpdateUserRoleResp struct {
+type UpdateMyEmailResp struct {
+	*dto.Resp
+}
+
+type UpdateMyPhoneResp struct {
+	*dto.Resp
+}
+
+type UpdateMyAvatarResp struct {
 	*dto.Resp
 }

@@ -31,6 +31,7 @@ type Provider struct {
 
 var ServiceSet = wire.NewSet(
 	service.UserServiceSet,
+	service.SessionServiceSet,
 )
 
 var RepositorySet = wire.NewSet(

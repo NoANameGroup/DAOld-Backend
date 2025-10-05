@@ -11,35 +11,19 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// Register .
+// CreateUser .
 // @router /api/users/register [POST]
-func Register(c *gin.Context) {
+func CreateUser(c *gin.Context) {
 	var err error
-	var req user.RegisterReq
-	var resp *user.RegisterResp
+	var req user.CreateUserReq
+	var resp *user.CreateUserResp
 
 	if err = c.ShouldBindJSON(&req); err != nil {
 		response.PostProcess(c, &req, resp, err)
 		return
 	}
 
-	resp, err = provider.Get().UserService.Register(c, &req)
-	response.PostProcess(c, &req, resp, err)
-}
-
-// Login .
-// @router /api/users/login [POST]
-func Login(c *gin.Context) {
-	var err error
-	var req user.LoginReq
-	var resp *user.LoginResp
-
-	if err = c.ShouldBindJSON(&req); err != nil {
-		response.PostProcess(c, &req, resp, err)
-		return
-	}
-
-	resp, err = provider.Get().UserService.Login(c, &req)
+	resp, err = provider.Get().UserService.CreateUser(c, &req)
 	response.PostProcess(c, &req, resp, err)
 }
 
@@ -71,12 +55,12 @@ func UpdateMyProfile(c *gin.Context) {
 	response.PostProcess(c, &req, resp, err)
 }
 
-// ChangePassword .
+// UpdateMyPassword .
 // @router /api/users/me/password [PATCH]
-func ChangePassword(c *gin.Context) {
+func UpdateMyPassword(c *gin.Context) {
 	var err error
-	var req user.ChangePasswordReq
-	var resp *user.ChangePasswordResp
+	var req user.UpdateMyPasswordReq
+	var resp *user.UpdateMyPasswordResp
 
 	if err = c.ShouldBindJSON(&req); err != nil {
 		response.PostProcess(c, &req, resp, err)
@@ -84,16 +68,16 @@ func ChangePassword(c *gin.Context) {
 	}
 
 	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
-	resp, err = provider.Get().UserService.ChangePassword(c, &req)
+	resp, err = provider.Get().UserService.UpdateMyPassword(c, &req)
 	response.PostProcess(c, &req, resp, err)
 }
 
-// DeleteAccount .
+// DeleteMyAccount .
 // @router /api/users/me [DELETE]
-func DeleteAccount(c *gin.Context) {
+func DeleteMyAccount(c *gin.Context) {
 	var err error
-	var req user.DeleteAccountReq
-	var resp *user.DeleteAccountResp
+	var req user.DeleteMyAccountReq
+	var resp *user.DeleteMyAccountResp
 
 	if err = c.ShouldBindJSON(&req); err != nil {
 		response.PostProcess(c, &req, resp, err)
@@ -101,18 +85,8 @@ func DeleteAccount(c *gin.Context) {
 	}
 
 	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
-	resp, err = provider.Get().UserService.DeleteAccount(c, &req)
+	resp, err = provider.Get().UserService.DeleteMyAccount(c, &req)
 	response.PostProcess(c, &req, resp, err)
-}
-
-// Logout .
-// @router /api/users/logout [POST]
-func Logout(c *gin.Context) {
-	var err error
-	var resp *user.LogoutResp
-
-	resp, err = provider.Get().UserService.Logout()
-	response.PostProcess(c, nil, resp, err)
 }
 
 // UpdateUserRole .
@@ -136,5 +110,56 @@ func UpdateUserRole(c *gin.Context) {
 	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
 	c.Set(consts.ContextTargetID, targetId)
 	resp, err = provider.Get().UserService.UpdateUserRole(c, &req)
+	response.PostProcess(c, &req, resp, err)
+}
+
+// UpdateMyEmail .
+// @router /api/users/me/email [PATCH]
+func UpdateMyEmail(c *gin.Context) {
+	var err error
+	var req user.UpdateMyEmailReq
+	var resp *user.UpdateMyEmailResp
+
+	if err = c.ShouldBindJSON(&req); err != nil {
+		response.PostProcess(c, &req, resp, err)
+		return
+	}
+
+	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
+	resp, err = provider.Get().UserService.UpdateMyEmail(c, &req)
+	response.PostProcess(c, &req, resp, err)
+}
+
+// UpdateMyPhone .
+// @router /api/users/me/phone [PATCH]
+func UpdateMyPhone(c *gin.Context) {
+	var err error
+	var req user.UpdateMyPhoneReq
+	var resp *user.UpdateMyPhoneResp
+
+	if err = c.ShouldBindJSON(&req); err != nil {
+		response.PostProcess(c, &req, resp, err)
+		return
+	}
+
+	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
+	resp, err = provider.Get().UserService.UpdateMyPhone(c, &req)
+	response.PostProcess(c, &req, resp, err)
+}
+
+// UpdateMyUsername .
+// @router /api/users/me/username [PATCH]
+func UpdateMyUsername(c *gin.Context) {
+	var err error
+	var req user.UpdateMyUsernameReq
+	var resp *user.UpdateMyAvatarResp
+
+	if err = c.ShouldBindJSON(&req); err != nil {
+		response.PostProcess(c, &req, resp, err)
+		return
+	}
+
+	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
+	resp, err = provider.Get().UserService.UpdateMyUsername(c, &req)
 	response.PostProcess(c, &req, resp, err)
 }

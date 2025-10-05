@@ -9,7 +9,6 @@ import (
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto"
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto/user"
 	"github.com/NoANameGroup/DAOld-Backend/internal/errorx"
-	"github.com/NoANameGroup/DAOld-Backend/internal/jwt"
 	"github.com/NoANameGroup/DAOld-Backend/internal/model"
 	"github.com/NoANameGroup/DAOld-Backend/internal/repository"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
@@ -19,13 +18,11 @@ import (
 )
 
 type IUserService interface {
-	Register(ctx context.Context, req *user.RegisterReq) (*user.RegisterResp, error)
-	Login(ctx context.Context, req *user.LoginReq) (*user.LoginResp, error)
+	CreateUser(ctx context.Context, req *user.CreateUserReq) (*user.CreateUserResp, error)
 	GetMyProfile(ctx context.Context) (*user.GetMyProfileResp, error)
-	ChangePassword(ctx context.Context, req *user.ChangePasswordReq) (*user.ChangePasswordResp, error)
-	DeleteAccount(ctx context.Context, req *user.DeleteAccountReq) (*user.DeleteAccountResp, error)
+	UpdateMyPassword(ctx context.Context, req *user.UpdateMyPasswordReq) (*user.UpdateMyPasswordResp, error)
+	DeleteMyAccount(ctx context.Context, req *user.DeleteMyAccountReq) (*user.DeleteMyAccountResp, error)
 	UpdateMyProfile(ctx context.Context, req *user.UpdateMyProfileReq) (*user.UpdateMyProfileResp, error)
-	Logout() (*user.LogoutResp, error)
 	UpdateUserRole(ctx context.Context, req *user.UpdateUserRoleReq) (*user.UpdateUserRoleResp, error)
 }
 
@@ -38,7 +35,7 @@ var UserServiceSet = wire.NewSet(
 	wire.Bind(new(IUserService), new(*UserService)),
 )
 
-func (s *UserService) Register(ctx context.Context, req *user.RegisterReq) (*user.RegisterResp, error) {
+func (s *UserService) CreateUser(ctx context.Context, req *user.CreateUserReq) (*user.CreateUserResp, error) {
 	var err error
 	var isExist bool
 	var hashPassword string
@@ -85,44 +82,7 @@ func (s *UserService) Register(ctx context.Context, req *user.RegisterReq) (*use
 		return nil, err
 	}
 
-	return &user.RegisterResp{Resp: dto.Success()}, nil
-}
-
-func (s *UserService) Login(ctx context.Context, req *user.LoginReq) (*user.LoginResp, error) {
-	var err error
-	var token string
-	var newUser *model.User
-
-	// 获取用户
-	if newUser, err = s.UserRepository.FindUserByEmail(ctx, req.Email); err != nil {
-		log.CtxError(ctx, "failed to find user: %v", err)
-		return nil, err
-	}
-
-	// 校验密码是否正确
-	if !security.ComparePassword(newUser.Password, req.Password) {
-		log.CtxInfo(ctx, "username or password incorrect")
-		return nil, errorx.ErrUsernameOrPasswordIncorrect
-	}
-
-	// 更新最后登录时间
-	if err = s.UserRepository.UpdateLastLoginAt(ctx, newUser.ID, time.Now()); err != nil {
-		log.CtxError(ctx, "failed to update last login at: %v", err)
-		return nil, err
-	}
-
-	// 生成 token
-	token, err = jwt.GenerateToken(newUser.ID)
-	if err != nil {
-		log.CtxError(ctx, "failed to generate token: %v", err)
-		return nil, err
-	}
-
-	return &user.LoginResp{
-		Resp:        dto.Success(),
-		AccessToken: token,
-		UserID:      newUser.ID,
-	}, nil
+	return &user.CreateUserResp{Resp: dto.Success()}, nil
 }
 
 func (s *UserService) GetMyProfile(ctx context.Context) (*user.GetMyProfileResp, error) {
@@ -163,7 +123,7 @@ func (s *UserService) GetMyProfile(ctx context.Context) (*user.GetMyProfileResp,
 	}, nil
 }
 
-func (s *UserService) ChangePassword(ctx context.Context, req *user.ChangePasswordReq) (*user.ChangePasswordResp, error) {
+func (s *UserService) UpdateMyPassword(ctx context.Context, req *user.UpdateMyPasswordReq) (*user.UpdateMyPasswordResp, error) {
 	var err error
 	var userModel *model.User
 	var hashPassword string
@@ -217,12 +177,12 @@ func (s *UserService) ChangePassword(ctx context.Context, req *user.ChangePasswo
 		return nil, err
 	}
 
-	return &user.ChangePasswordResp{
+	return &user.UpdateMyPasswordResp{
 		Resp: dto.Success(),
 	}, nil
 }
 
-func (s *UserService) DeleteAccount(ctx context.Context, req *user.DeleteAccountReq) (*user.DeleteAccountResp, error) {
+func (s *UserService) DeleteMyAccount(ctx context.Context, req *user.DeleteMyAccountReq) (*user.DeleteMyAccountResp, error) {
 	var err error
 	var userModel *model.User
 
@@ -257,7 +217,7 @@ func (s *UserService) DeleteAccount(ctx context.Context, req *user.DeleteAccount
 		return nil, err
 	}
 
-	return &user.DeleteAccountResp{
+	return &user.DeleteMyAccountResp{
 		Resp: dto.Success(),
 	}, nil
 }
@@ -272,10 +232,6 @@ func (s *UserService) UpdateMyProfile(ctx context.Context, req *user.UpdateMyPro
 	update := bson.M{}
 	cnt := 0
 
-	if req.Username != "" {
-		update[consts.Username] = req.Username
-		cnt++
-	}
 	if req.Avatar != "" {
 		update[consts.Avatar] = req.Avatar
 		cnt++
@@ -318,12 +274,6 @@ func (s *UserService) UpdateMyProfile(ctx context.Context, req *user.UpdateMyPro
 	return &user.UpdateMyProfileResp{
 		Resp:  dto.Success(),
 		Count: cnt,
-	}, nil
-}
-
-func (s *UserService) Logout() (*user.LogoutResp, error) {
-	return &user.LogoutResp{
-		Resp: dto.Success(),
 	}, nil
 }
 

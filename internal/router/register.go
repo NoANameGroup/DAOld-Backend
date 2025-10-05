@@ -11,14 +11,22 @@ func SetupRoutes() *gin.Engine {
 	// UserApi
 	userGroup := router.Group("/api/users")
 	{
-		userGroup.POST("/register", handler.Register)
-		userGroup.POST("/login", handler.Login)
+		userGroup.POST("/", handler.CreateUser)
 		userGroup.GET("/me", handler.GetMyProfile)
 		userGroup.PATCH("/me", handler.UpdateMyProfile)
-		userGroup.PATCH("/me/password", handler.ChangePassword)
-		userGroup.DELETE("/me", handler.DeleteAccount)
-		userGroup.POST("/logout", handler.Logout)
+		userGroup.PATCH("/me/password", handler.UpdateMyPassword)
+		userGroup.DELETE("/me", handler.DeleteMyAccount)
 		userGroup.PATCH("/:userId/role", handler.UpdateUserRole)
+		userGroup.PATCH("/me/email", handler.UpdateMyEmail)
+		userGroup.PATCH("/me/phone", handler.UpdateMyPhone)
+		userGroup.PATCH("/me/username", handler.UpdateMyUsername)
+	}
+
+	// SessionApi
+	sessionGroup := router.Group("/api/sessions")
+	{
+		sessionGroup.POST("/", handler.CreateSession)
+		sessionGroup.DELETE("/", handler.DeleteSession)
 	}
 
 	return router

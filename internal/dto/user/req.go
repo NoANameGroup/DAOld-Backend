@@ -1,23 +1,18 @@
 package user
 
-type RegisterReq struct {
+type CreateUserReq struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-type LoginReq struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type ChangePasswordReq struct {
+type UpdateMyPasswordReq struct {
 	OldPassword     string `json:"oldPassword"`
 	NewPassword     string `json:"newPassword"`
 	ConfirmPassword string `json:"confirmPassword"`
 }
 
-type DeleteAccountReq struct {
+type DeleteMyAccountReq struct {
 	Password     string `json:"password"`
 	Confirmation string `json:"confirmation"`
 }
@@ -28,4 +23,22 @@ type UpdateMyProfileReq struct {
 
 type UpdateUserRoleReq struct {
 	Role string `json:"role"`
+}
+
+type UpdateMyEmailReq struct {
+	Password         string `json:"password"`
+	CurrentEmailCode string `json:"currentEmailCode"`
+	NewEmail         string `json:"newEmail"`
+	NewEmailCode     string `json:"newEmailCode"`
+}
+
+type UpdateMyPhoneReq struct {
+	Password         string `json:"password"`
+	CurrentPhoneCode string `json:"currentPhoneCode"`
+	NewPhone         string `json:"newPhone"`
+	NewPhoneCode     string `json:"newPhoneCode"`
+}
+
+type UpdateMyUsernameReq struct {
+	NewUsername string `json:"newUsername"`
 }
