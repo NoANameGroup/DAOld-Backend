@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
+	"github.com/NoANameGroup/DAOld-Backend/pkg/consts"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"

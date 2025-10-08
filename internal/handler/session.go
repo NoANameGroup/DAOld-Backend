@@ -19,7 +19,7 @@ func CreateSession(c *gin.Context) {
 		return
 	}
 
-	resp, err = provider.Get().UserService.CreateSession(c, &req)
+	resp, err = provider.Get().SessionService.CreateSession(c, &req)
 	response.PostProcess(c, &req, resp, err)
 }
 
@@ -29,6 +29,6 @@ func DeleteSession(c *gin.Context) {
 	var err error
 	var resp *session.DeleteSessionResp
 
-	resp, err = provider.Get().UserService.DeleteSession()
+	resp, err = provider.Get().SessionService.DeleteSession()
 	response.PostProcess(c, nil, resp, err)
 }

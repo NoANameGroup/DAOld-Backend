@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/NoANameGroup/DAOld-Backend/internal/consts/enum"
+	"github.com/NoANameGroup/DAOld-Backend/pkg/consts/enum"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 

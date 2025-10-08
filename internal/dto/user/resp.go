@@ -41,3 +41,7 @@ type UpdateMyPhoneResp struct {
 type UpdateMyAvatarResp struct {
 	*dto.Resp
 }
+
+type UpdateMyUsernameResp struct {
+	*dto.Resp
+}

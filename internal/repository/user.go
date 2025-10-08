@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/NoANameGroup/DAOld-Backend/internal/config"
-	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
-	"github.com/NoANameGroup/DAOld-Backend/internal/consts/enum"
 	"github.com/NoANameGroup/DAOld-Backend/internal/model"
+	"github.com/NoANameGroup/DAOld-Backend/pkg/consts"
+	"github.com/NoANameGroup/DAOld-Backend/pkg/consts/enum"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/zeromicro/go-zero/core/stores/monc"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -18,9 +18,9 @@ const (
 )
 
 type IUserRepository interface {
-	IsEmailExist(ctx context.Context, email string) (bool, error)
-	IsPhoneExist(ctx context.Context, phone string) (bool, error)
-	IsUsernameExist(ctx context.Context, username string) (bool, error)
+	IsEmailExisted(ctx context.Context, email string) (bool, error)
+	IsPhoneExisted(ctx context.Context, phone string) (bool, error)
+	IsUsernameExisted(ctx context.Context, username string) (bool, error)
 	Insert(ctx context.Context, user *model.User) error
 	FindUserByEmail(ctx context.Context, email string) (*model.User, error)
 	UpdateLastLoginAt(ctx context.Context, userId bson.ObjectID, t time.Time) error
@@ -30,6 +30,8 @@ type IUserRepository interface {
 	UpdateUser(ctx context.Context, userId bson.ObjectID, update bson.M) error
 	IsAdmin(ctx context.Context, userId bson.ObjectID) (bool, error)
 	UpdateUserRole(ctx context.Context, userId bson.ObjectID, role enum.UserRole) error
+
+	UpdateUsername(ctx context.Context, userId bson.ObjectID, username string) error
 }
 
 type UserRepository struct {
@@ -43,7 +45,7 @@ func NewUserRepository(config *config.Config) *UserRepository {
 	}
 }
 
-func (r *UserRepository) IsEmailExist(ctx context.Context, email string) (bool, error) {
+func (r *UserRepository) IsEmailExisted(ctx context.Context, email string) (bool, error) {
 	var err error
 	var count int64
 	if count, err = r.conn.CountDocuments(ctx, bson.M{consts.Email: email}); err != nil {
@@ -54,7 +56,7 @@ func (r *UserRepository) IsEmailExist(ctx context.Context, email string) (bool, 
 	return count > 0, nil
 }
 
-func (r *UserRepository) IsPhoneExist(ctx context.Context, phone string) (bool, error) {
+func (r *UserRepository) IsPhoneExisted(ctx context.Context, phone string) (bool, error) {
 	var err error
 	var count int64
 	if count, err = r.conn.CountDocuments(ctx, bson.M{consts.Phone: phone}); err != nil {
@@ -65,7 +67,7 @@ func (r *UserRepository) IsPhoneExist(ctx context.Context, phone string) (bool, 
 	return count > 0, nil
 }
 
-func (r *UserRepository) IsUsernameExist(ctx context.Context, username string) (bool, error) {
+func (r *UserRepository) IsUsernameExisted(ctx context.Context, username string) (bool, error) {
 	var err error
 	var count int64
 	if count, err = r.conn.CountDocuments(ctx, bson.M{consts.Username: username}); err != nil {
@@ -162,6 +164,15 @@ func (r *UserRepository) IsAdmin(ctx context.Context, userId bson.ObjectID) (boo
 func (r *UserRepository) UpdateUserRole(ctx context.Context, userId bson.ObjectID, role enum.UserRole) error {
 	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": bson.M{consts.Role: role}}); err != nil {
 		log.CtxError(ctx, "failed to update user role %s: %v", userId.Hex(), err)
+		return err
+	}
+
+	return nil
+}
+
+func (r *UserRepository) UpdateUsername(ctx context.Context, userId bson.ObjectID, username string) error {
+	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": bson.M{consts.Username: username}}); err != nil {
+		log.CtxError(ctx, "failed to update username %s: %v", userId.Hex(), err)
 		return err
 	}
 

@@ -4,13 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/NoANameGroup/DAOld-Backend/internal/consts"
-	"github.com/NoANameGroup/DAOld-Backend/internal/consts/enum"
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto"
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto/user"
-	"github.com/NoANameGroup/DAOld-Backend/internal/errorx"
 	"github.com/NoANameGroup/DAOld-Backend/internal/model"
 	"github.com/NoANameGroup/DAOld-Backend/internal/repository"
+	"github.com/NoANameGroup/DAOld-Backend/pkg/consts"
+	"github.com/NoANameGroup/DAOld-Backend/pkg/consts/enum"
+	"github.com/NoANameGroup/DAOld-Backend/pkg/errorx"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/security"
 	"github.com/google/wire"
@@ -26,6 +26,8 @@ type IUserService interface {
 	DeleteMyAccount(ctx context.Context, req *user.DeleteMyAccountReq) (*user.DeleteMyAccountResp, error)
 	UpdateMyProfile(ctx context.Context, req *user.UpdateMyProfileReq) (*user.UpdateMyProfileResp, error)
 	UpdateUserRole(ctx context.Context, req *user.UpdateUserRoleReq) (*user.UpdateUserRoleResp, error)
+
+	UpdateMyUsername(ctx context.Context, req *user.UpdateMyUsernameReq) (*user.UpdateMyUsernameResp, error)
 }
 
 type UserService struct {
@@ -43,7 +45,7 @@ func (s *UserService) CreateUser(ctx context.Context, req *user.CreateUserReq) (
 	var hashPassword string
 
 	// 检查邮箱是否已被注册
-	if isExist, err = s.UserRepository.IsEmailExist(ctx, req.Email); err != nil {
+	if isExist, err = s.UserRepository.IsEmailExisted(ctx, req.Email); err != nil {
 		log.CtxError(ctx, "failed to check existing email: %v", err)
 		return nil, err
 	} else if isExist {
@@ -52,7 +54,7 @@ func (s *UserService) CreateUser(ctx context.Context, req *user.CreateUserReq) (
 	}
 
 	// 检查用户名是否已被注册
-	if isExist, err = s.UserRepository.IsUsernameExist(ctx, req.Username); err != nil {
+	if isExist, err = s.UserRepository.IsUsernameExisted(ctx, req.Username); err != nil {
 		log.CtxError(ctx, "failed to check existing username: %v", err)
 		return nil, err
 	} else if isExist {
@@ -316,4 +318,29 @@ func (s *UserService) UpdateUserRole(ctx context.Context, req *user.UpdateUserRo
 	return &user.UpdateUserRoleResp{
 		Resp: dto.Success(),
 	}, nil
+}
+
+func (s *UserService) UpdateMyUsername(ctx context.Context, req *user.UpdateMyUsernameReq) (*user.UpdateMyUsernameResp, error) {
+	// 获取当前用户ID并转换类型
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
+	if !ok {
+		return nil, errorx.ErrContextUserIDInvalid
+	}
+
+	// 检查用户名是否已存在
+	if exists, err := s.UserRepository.IsUsernameExisted(ctx, req.NewUsername); exists {
+		log.CtxInfo(ctx, "username already exists")
+		return nil, errorx.ErrUsernameExisted
+	} else if err != nil {
+		log.CtxError(ctx, "failed to check username: %v", err)
+		return nil, err
+	}
+
+	// 更新数据库
+	if err := s.UserRepository.UpdateUsername(ctx, userId, req.NewUsername); err != nil {
+		log.CtxError(ctx, "failed to update username: %v", err)
+		return nil, err
+	}
+
+	return &user.UpdateMyUsernameResp{Resp: dto.Success()}, nil
 }

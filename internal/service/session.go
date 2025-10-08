@@ -2,16 +2,17 @@ package service
 
 import (
 	"context"
+	"time"
+
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto"
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto/session"
-	"github.com/NoANameGroup/DAOld-Backend/internal/errorx"
-	"github.com/NoANameGroup/DAOld-Backend/internal/jwt"
 	"github.com/NoANameGroup/DAOld-Backend/internal/model"
 	"github.com/NoANameGroup/DAOld-Backend/internal/repository"
+	"github.com/NoANameGroup/DAOld-Backend/pkg/errorx"
+	"github.com/NoANameGroup/DAOld-Backend/pkg/jwt"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/security"
 	"github.com/google/wire"
-	"time"
 )
 
 var _ ISessionService = (*SessionService)(nil)

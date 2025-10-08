@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/NoANameGroup/DAOld-Backend/internal/errorx"
+	"github.com/NoANameGroup/DAOld-Backend/pkg/errorx"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/lib"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/gin-gonic/gin"
