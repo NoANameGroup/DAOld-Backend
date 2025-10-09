@@ -1,11 +1,11 @@
 package jwt
 
 import (
-	"errors"
 	"strings"
 	"time"
 
 	"github.com/NoANameGroup/DAOld-Backend/pkg/consts"
+	"github.com/NoANameGroup/DAOld-Backend/pkg/errorx"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
@@ -53,7 +53,7 @@ func ExtractUserID(tokenStr string) (bson.ObjectID, error) {
 	claims := token.Claims.(jwt.MapClaims)
 	userIdStr, ok := claims["userId"].(string)
 	if !ok {
-		err = errors.New("invalid userId in token")
+		err = errorx.ErrTokenInvalid
 		log.Error("ExtractUserID error: %v", err)
 		return bson.NilObjectID, err
 	}
@@ -71,7 +71,7 @@ func ExtractUserID(tokenStr string) (bson.ObjectID, error) {
 func ExtractUserIDFromContext(c *gin.Context) bson.ObjectID {
 	authHeader := c.GetHeader("Authorization")
 	if !strings.HasPrefix(authHeader, "Bearer ") {
-		err := errors.New("missing or malformed authorization header")
+		err := errorx.ErrAuthorizationHeaderInvalid
 		log.CtxError(c.Request.Context(), "ExtractUserIDFromContext: %v", err)
 		return bson.NilObjectID
 	}

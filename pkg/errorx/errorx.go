@@ -72,3 +72,9 @@ var (
 	ErrBirthdayFormatInvalid       = New(1009, "生日格式无效")
 	ErrUserPermissionsInsufficient = New(1010, "用户权限不足")
 )
+
+// JWT 相关
+var (
+	ErrTokenInvalid               = New(2001, "无效的Token")
+	ErrAuthorizationHeaderInvalid = New(2002, "无效的Header")
+)

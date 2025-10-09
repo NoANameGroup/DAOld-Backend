@@ -17,8 +17,8 @@ func SetupRoutes() *gin.Engine {
 		userGroup.PATCH("/me/password", handler.UpdateMyPassword)
 		userGroup.DELETE("/me", handler.DeleteMyAccount)
 		userGroup.PATCH("/:userId/role", handler.UpdateUserRole)
-		userGroup.PATCH("/me/email", handler.UpdateMyEmail)
-		userGroup.PATCH("/me/phone", handler.UpdateMyPhone)
+		//userGroup.PATCH("/me/email", handler.UpdateMyEmail)
+		//userGroup.PATCH("/me/phone", handler.UpdateMyPhone)
 		userGroup.PATCH("/me/username", handler.UpdateMyUsername)
 	}
 
