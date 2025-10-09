@@ -10,6 +10,7 @@ import (
 	"github.com/NoANameGroup/DAOld-Backend/pkg/consts/enum"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/zeromicro/go-zero/core/stores/monc"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -17,21 +18,24 @@ const (
 	CollectionName = "user"
 )
 
+var _ IUserRepository = (*UserRepository)(nil)
+
 type IUserRepository interface {
+	isFieldExisted(ctx context.Context, field string, value interface{}) (bool, error)
 	IsEmailExisted(ctx context.Context, email string) (bool, error)
 	IsPhoneExisted(ctx context.Context, phone string) (bool, error)
 	IsUsernameExisted(ctx context.Context, username string) (bool, error)
 	Insert(ctx context.Context, user *model.User) error
 	FindUserByEmail(ctx context.Context, email string) (*model.User, error)
-	UpdateLastLoginAt(ctx context.Context, userId bson.ObjectID, t time.Time) error
-	FindUserByUserID(ctx context.Context, userId bson.ObjectID)
-	UpdatePassword(ctx context.Context, userId bson.ObjectID, password string) error
-	DeleteUser(ctx context.Context, userId bson.ObjectID) error
-	UpdateUser(ctx context.Context, userId bson.ObjectID, update bson.M) error
-	IsAdmin(ctx context.Context, userId bson.ObjectID) (bool, error)
-	UpdateUserRole(ctx context.Context, userId bson.ObjectID, role enum.UserRole) error
+	UpdateLastLoginAt(ctx context.Context, userId primitive.ObjectID, t time.Time) error
+	FindUserByUserID(ctx context.Context, userId primitive.ObjectID) (*model.User, error)
+	UpdatePassword(ctx context.Context, userId primitive.ObjectID, password string) error
+	DeleteUser(ctx context.Context, userId primitive.ObjectID) error
+	UpdateUser(ctx context.Context, userId primitive.ObjectID, update bson.M) error
+	IsAdmin(ctx context.Context, userId primitive.ObjectID) (bool, error)
+	UpdateUserRole(ctx context.Context, userId primitive.ObjectID, role enum.UserRole) error
 
-	UpdateUsername(ctx context.Context, userId bson.ObjectID, username string) error
+	UpdateUsername(ctx context.Context, userId primitive.ObjectID, username string) error
 }
 
 type UserRepository struct {
@@ -45,37 +49,27 @@ func NewUserRepository(config *config.Config) *UserRepository {
 	}
 }
 
-func (r *UserRepository) IsEmailExisted(ctx context.Context, email string) (bool, error) {
+func (r *UserRepository) isFieldExisted(ctx context.Context, field string, value interface{}) (bool, error) {
 	var err error
 	var count int64
-	if count, err = r.conn.CountDocuments(ctx, bson.M{consts.Email: email}); err != nil {
-		log.CtxError(ctx, "failed to check existing email: %v", err)
+	if count, err = r.conn.CountDocuments(ctx, bson.M{field: value}); err != nil {
+		log.CtxError(ctx, "failed to check existing %s: %v", field, err)
 		return false, err
 	}
 
 	return count > 0, nil
+}
+
+func (r *UserRepository) IsEmailExisted(ctx context.Context, email string) (bool, error) {
+	return r.isFieldExisted(ctx, consts.Email, email)
 }
 
 func (r *UserRepository) IsPhoneExisted(ctx context.Context, phone string) (bool, error) {
-	var err error
-	var count int64
-	if count, err = r.conn.CountDocuments(ctx, bson.M{consts.Phone: phone}); err != nil {
-		log.CtxError(ctx, "failed to check existing phone: %v", err)
-		return false, err
-	}
-
-	return count > 0, nil
+	return r.isFieldExisted(ctx, consts.Phone, phone)
 }
 
 func (r *UserRepository) IsUsernameExisted(ctx context.Context, username string) (bool, error) {
-	var err error
-	var count int64
-	if count, err = r.conn.CountDocuments(ctx, bson.M{consts.Username: username}); err != nil {
-		log.CtxError(ctx, "failed to check existing username: %v", err)
-		return false, err
-	}
-
-	return count > 0, nil
+	return r.isFieldExisted(ctx, consts.Username, username)
 }
 
 func (r *UserRepository) Insert(ctx context.Context, user *model.User) error {
@@ -101,7 +95,7 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*mo
 	return &user, nil
 }
 
-func (r *UserRepository) UpdateLastLoginAt(ctx context.Context, userId bson.ObjectID, t time.Time) error {
+func (r *UserRepository) UpdateLastLoginAt(ctx context.Context, userId primitive.ObjectID, t time.Time) error {
 	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": bson.M{consts.LastLoginAt: t}}); err != nil {
 		log.CtxError(ctx, "failed to update LastLoginAt for user %s: %v", userId.Hex(), err)
 		return err
@@ -110,7 +104,7 @@ func (r *UserRepository) UpdateLastLoginAt(ctx context.Context, userId bson.Obje
 	return nil
 }
 
-func (r *UserRepository) FindUserByUserID(ctx context.Context, userId bson.ObjectID) (*model.User, error) {
+func (r *UserRepository) FindUserByUserID(ctx context.Context, userId primitive.ObjectID) (*model.User, error) {
 	var err error
 	user := model.User{}
 	log.CtxInfo(ctx, "FindUserByUserID in collection=%s, filter=%+v", CollectionName, bson.M{consts.UserID: userId})
@@ -123,7 +117,7 @@ func (r *UserRepository) FindUserByUserID(ctx context.Context, userId bson.Objec
 	return &user, nil
 }
 
-func (r *UserRepository) UpdatePassword(ctx context.Context, userId bson.ObjectID, hashPassword string) error {
+func (r *UserRepository) UpdatePassword(ctx context.Context, userId primitive.ObjectID, hashPassword string) error {
 	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": bson.M{consts.Password: hashPassword}}); err != nil {
 		log.CtxError(ctx, "failed to update password for user %s: %v", userId.Hex(), err)
 		return err
@@ -132,7 +126,7 @@ func (r *UserRepository) UpdatePassword(ctx context.Context, userId bson.ObjectI
 	return nil
 }
 
-func (r *UserRepository) DeleteUser(ctx context.Context, userId bson.ObjectID) error {
+func (r *UserRepository) DeleteUser(ctx context.Context, userId primitive.ObjectID) error {
 	if _, err := r.conn.DeleteOneNoCache(ctx, bson.M{consts.ID: userId}); err != nil {
 		log.CtxError(ctx, "failed to delete user %s: %v", userId.Hex(), err)
 		return err
@@ -141,7 +135,7 @@ func (r *UserRepository) DeleteUser(ctx context.Context, userId bson.ObjectID) e
 	return nil
 }
 
-func (r *UserRepository) UpdateUser(ctx context.Context, userId bson.ObjectID, update bson.M) error {
+func (r *UserRepository) UpdateUser(ctx context.Context, userId primitive.ObjectID, update bson.M) error {
 	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": update}); err != nil {
 		log.CtxError(ctx, "failed to update user %s: %v", userId.Hex(), err)
 		return err
@@ -150,7 +144,7 @@ func (r *UserRepository) UpdateUser(ctx context.Context, userId bson.ObjectID, u
 	return nil
 }
 
-func (r *UserRepository) IsAdmin(ctx context.Context, userId bson.ObjectID) (bool, error) {
+func (r *UserRepository) IsAdmin(ctx context.Context, userId primitive.ObjectID) (bool, error) {
 	var err error
 	user := &model.User{}
 	if user, err = r.FindUserByUserID(ctx, userId); err != nil {
@@ -161,7 +155,7 @@ func (r *UserRepository) IsAdmin(ctx context.Context, userId bson.ObjectID) (boo
 	return user.Role == enum.RoleAdmin, nil
 }
 
-func (r *UserRepository) UpdateUserRole(ctx context.Context, userId bson.ObjectID, role enum.UserRole) error {
+func (r *UserRepository) UpdateUserRole(ctx context.Context, userId primitive.ObjectID, role enum.UserRole) error {
 	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": bson.M{consts.Role: role}}); err != nil {
 		log.CtxError(ctx, "failed to update user role %s: %v", userId.Hex(), err)
 		return err
@@ -170,7 +164,7 @@ func (r *UserRepository) UpdateUserRole(ctx context.Context, userId bson.ObjectI
 	return nil
 }
 
-func (r *UserRepository) UpdateUsername(ctx context.Context, userId bson.ObjectID, username string) error {
+func (r *UserRepository) UpdateUsername(ctx context.Context, userId primitive.ObjectID, username string) error {
 	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": bson.M{consts.Username: username}}); err != nil {
 		log.CtxError(ctx, "failed to update username %s: %v", userId.Hex(), err)
 		return err

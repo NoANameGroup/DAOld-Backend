@@ -9,11 +9,11 @@ import (
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
-	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // GenerateToken generates a JWT token for a given UserID.
-func GenerateToken(userId bson.ObjectID) (string, error) {
+func GenerateToken(userId primitive.ObjectID) (string, error) {
 	claims := jwt.MapClaims{
 		"userId": userId.Hex(),
 		"exp":    time.Now().Add(24 * time.Hour).Unix(),
@@ -44,10 +44,10 @@ func ParseToken(tokenStr string) (*jwt.Token, error) {
 }
 
 // ExtractUserID extracts the user ID from a JWT token.
-func ExtractUserID(tokenStr string) (bson.ObjectID, error) {
+func ExtractUserID(tokenStr string) (primitive.ObjectID, error) {
 	token, err := ParseToken(tokenStr)
 	if err != nil || !token.Valid {
-		return bson.NilObjectID, err
+		return primitive.NilObjectID, err
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
@@ -55,31 +55,31 @@ func ExtractUserID(tokenStr string) (bson.ObjectID, error) {
 	if !ok {
 		err = errorx.ErrTokenInvalid
 		log.Error("ExtractUserID error: %v", err)
-		return bson.NilObjectID, err
+		return primitive.NilObjectID, err
 	}
 
-	objectId, err := bson.ObjectIDFromHex(userIdStr)
+	objectId, err := primitive.ObjectIDFromHex(userIdStr)
 	if err != nil {
 		log.Error("ExtractUserID invalid ObjectID: %v", err)
-		return bson.NilObjectID, err
+		return primitive.NilObjectID, err
 	}
 
 	return objectId, nil
 }
 
 // ExtractUserIDFromContext 从 gin.Context 中提取用户ID
-func ExtractUserIDFromContext(c *gin.Context) bson.ObjectID {
+func ExtractUserIDFromContext(c *gin.Context) primitive.ObjectID {
 	authHeader := c.GetHeader("Authorization")
 	if !strings.HasPrefix(authHeader, "Bearer ") {
 		err := errorx.ErrAuthorizationHeaderInvalid
 		log.CtxError(c.Request.Context(), "ExtractUserIDFromContext: %v", err)
-		return bson.NilObjectID
+		return primitive.NilObjectID
 	}
 
 	userId, err := ExtractUserID(strings.TrimPrefix(authHeader, "Bearer "))
 	if err != nil {
 		log.CtxInfo(c.Request.Context(), "Failed to extract user ID from token: %v", err)
-		return bson.NilObjectID
+		return primitive.NilObjectID
 	}
 
 	return userId

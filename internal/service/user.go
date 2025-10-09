@@ -14,6 +14,7 @@ import (
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/security"
 	"github.com/google/wire"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -26,7 +27,8 @@ type IUserService interface {
 	DeleteMyAccount(ctx context.Context, req *user.DeleteMyAccountReq) (*user.DeleteMyAccountResp, error)
 	UpdateMyProfile(ctx context.Context, req *user.UpdateMyProfileReq) (*user.UpdateMyProfileResp, error)
 	UpdateUserRole(ctx context.Context, req *user.UpdateUserRoleReq) (*user.UpdateUserRoleResp, error)
-
+	UpdateMyEmail(ctx context.Context, req *user.UpdateMyEmailReq) (*user.UpdateMyEmailResp, error)
+	UpdateMyPhone(ctx context.Context, req *user.UpdateMyPhoneReq) (*user.UpdateMyPhoneResp, error)
 	UpdateMyUsername(ctx context.Context, req *user.UpdateMyUsernameReq) (*user.UpdateMyUsernameResp, error)
 }
 
@@ -70,7 +72,7 @@ func (s *UserService) CreateUser(ctx context.Context, req *user.CreateUserReq) (
 
 	// 创建用户
 	newUser := &model.User{
-		ID:        bson.NewObjectID(),
+		ID:        primitive.NewObjectID(),
 		Email:     req.Email,
 		Username:  req.Username,
 		Password:  hashPassword,
@@ -94,7 +96,7 @@ func (s *UserService) GetMyProfile(ctx context.Context) (*user.GetMyProfileResp,
 	var userModel *model.User
 
 	// 获取用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
+	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
@@ -133,7 +135,7 @@ func (s *UserService) UpdateMyPassword(ctx context.Context, req *user.UpdateMyPa
 	var hashPassword string
 
 	// 获取用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
+	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
@@ -191,7 +193,7 @@ func (s *UserService) DeleteMyAccount(ctx context.Context, req *user.DeleteMyAcc
 	var userModel *model.User
 
 	// 获取用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
+	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
@@ -228,7 +230,7 @@ func (s *UserService) DeleteMyAccount(ctx context.Context, req *user.DeleteMyAcc
 
 func (s *UserService) UpdateMyProfile(ctx context.Context, req *user.UpdateMyProfileReq) (*user.UpdateMyProfileResp, error) {
 	// 获取用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
+	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
@@ -283,7 +285,7 @@ func (s *UserService) UpdateMyProfile(ctx context.Context, req *user.UpdateMyPro
 
 func (s *UserService) UpdateUserRole(ctx context.Context, req *user.UpdateUserRoleReq) (*user.UpdateUserRoleResp, error) {
 	// 获取当前用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
+	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
@@ -298,7 +300,7 @@ func (s *UserService) UpdateUserRole(ctx context.Context, req *user.UpdateUserRo
 	}
 
 	// 从路径参数获取用户ID
-	targetId, ok := ctx.Value(consts.ContextTargetID).(bson.ObjectID)
+	targetId, ok := ctx.Value(consts.ContextTargetID).(primitive.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
@@ -320,9 +322,36 @@ func (s *UserService) UpdateUserRole(ctx context.Context, req *user.UpdateUserRo
 	}, nil
 }
 
+func (s *UserService) UpdateMyEmail(ctx context.Context, req *user.UpdateMyEmailReq) (*user.UpdateMyEmailResp, error) {
+	return nil, errorx.ErrNotImplemented
+}
+
+func (s *UserService) UpdateMyPhone(ctx context.Context, req *user.UpdateMyPhoneReq) (*user.UpdateMyPhoneResp, error) {
+	// 获取当前用户ID并转换类型
+	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	if !ok {
+		return nil, errorx.ErrContextUserIDInvalid
+	}
+
+	// 获取用户
+	userModel, err := s.UserRepository.FindUserByUserID(ctx, userId)
+	if err != nil {
+		log.CtxError(ctx, "failed to find user: %v", err)
+		return nil, err
+	}
+
+	// 检查密码是否正确
+	if !security.ComparePassword(userModel.Password, req.Password) {
+		log.CtxInfo(ctx, "wrong password")
+		return nil, errorx.ErrPasswordIncorrect
+	}
+
+	return nil, errorx.ErrNotImplemented
+}
+
 func (s *UserService) UpdateMyUsername(ctx context.Context, req *user.UpdateMyUsernameReq) (*user.UpdateMyUsernameResp, error) {
 	// 获取当前用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
+	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}

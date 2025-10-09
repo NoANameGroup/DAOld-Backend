@@ -78,3 +78,16 @@ var (
 	ErrTokenInvalid               = New(2001, "无效的Token")
 	ErrAuthorizationHeaderInvalid = New(2002, "无效的Header")
 )
+
+// 验证码相关
+var (
+	ErrOTPExpired       = New(3001, "验证码已过期")
+	ErrSMSCodeInvalid   = New(3002, "无效的短信验证码")
+	ErrEmailCodeInvalid = New(3003, "无效的邮箱验证码")
+	ErrCodeInvalid      = New(3004, "无效的验证码")
+)
+
+// 实现相关
+var (
+	ErrNotImplemented = New(5001, "功能未实现")
+)

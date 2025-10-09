@@ -2,13 +2,13 @@ package session
 
 import (
 	"github.com/NoANameGroup/DAOld-Backend/internal/dto"
-	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type CreateSessionResp struct {
 	*dto.Resp
-	UserID      bson.ObjectID `json:"userId"`
-	AccessToken string        `json:"accessToken"`
+	UserID      primitive.ObjectID `json:"userId"`
+	AccessToken string             `json:"accessToken"`
 }
 
 type DeleteSessionResp struct {

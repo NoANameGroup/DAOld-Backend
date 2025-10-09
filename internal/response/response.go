@@ -14,7 +14,7 @@ import (
 // PostProcess 处理http响应, resp要求指针或接口类型
 // 在日志中记录本次调用详情, 同时向响应头中注入符合b3规范的链路信息, 主要是trace_id
 // 最佳实践:
-// - 在controller中调用业务处理, 处理结束后调用PostProcess
+// - 在 handler 中调用业务处理, 处理结束后调用PostProcess
 func PostProcess(c *gin.Context, req, resp any, err error) {
 	log.CtxInfo(c, "[%s] req=%s, resp=%s, err=%v", c.FullPath(), lib.JSONF(req), lib.JSONF(resp), err)
 
