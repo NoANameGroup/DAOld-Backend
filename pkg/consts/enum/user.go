@@ -66,13 +66,15 @@ func GetUserGenderCode(desc string) UserGender {
 type UserRole int
 
 const (
+	RoleUser  UserRole = 0 // 用户
 	RoleAdmin UserRole = 1 // 管理员
-	RoleUser  UserRole = 2 // 普通用户
+	RuleElder UserRole = 2 // 老人
 )
 
 var UserRoleMap = map[UserRole]string{
-	RoleAdmin: "管理员",
 	RoleUser:  "用户",
+	RoleAdmin: "管理员",
+	RuleElder: "老人",
 }
 
 func GetUserRoleDesc(code UserRole) string {

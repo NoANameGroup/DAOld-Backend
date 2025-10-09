@@ -33,5 +33,6 @@ const (
 	Username    = "username"
 	FirstName   = "firstName"
 	LastName    = "lastName"
+	IDCard      = "idCard"
 	LastLoginAt = "lastLoginAt"
 )

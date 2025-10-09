@@ -116,6 +116,7 @@ func (s *UserService) GetMyProfile(ctx context.Context) (*user.GetMyProfileResp,
 			Avatar:      userModel.Avatar,
 			FirstName:   userModel.FirstName,
 			LastName:    userModel.LastName,
+			IDCard:      userModel.IDCard,
 			Gender:      enum.GetUserGenderDesc(userModel.Gender),
 			Role:        enum.GetUserRoleDesc(userModel.Role),
 			Status:      enum.GetUserStatusDesc(userModel.Status),
@@ -248,6 +249,10 @@ func (s *UserService) UpdateMyProfile(ctx context.Context, req *user.UpdateMyPro
 	}
 	if req.LastName != "" {
 		update[consts.LastName] = req.LastName
+		cnt++
+	}
+	if req.IDCard != "" {
+		update[consts.IDCard] = req.IDCard
 		cnt++
 	}
 	if req.Gender != "" {

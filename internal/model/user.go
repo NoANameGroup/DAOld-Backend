@@ -12,6 +12,7 @@ type User struct {
 	Username    string             `bson:"username"`
 	FirstName   string             `bson:"firstName"`
 	LastName    string             `bson:"lastName"`
+	IDCard      string             `bson:"idCard"`
 	Email       string             `bson:"email"`
 	Password    string             `bson:"password"`
 	Phone       string             `bson:"phone"`

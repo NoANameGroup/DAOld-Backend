@@ -8,6 +8,7 @@ type UserVO struct {
 	Username    string    `json:"username"`
 	FirstName   string    `json:"firstName"`
 	LastName    string    `json:"lastName"`
+	IDCard      string    `json:"idCard"`
 	Email       string    `json:"email"`
 	Phone       string    `json:"phone"`
 	Avatar      string    `json:"avatar"`
