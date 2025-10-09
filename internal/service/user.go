@@ -92,9 +92,6 @@ func (s *UserService) CreateUser(ctx context.Context, req *user.CreateUserReq) (
 }
 
 func (s *UserService) GetMyProfile(ctx context.Context) (*user.GetMyProfileResp, error) {
-	var err error
-	var userModel *model.User
-
 	// 获取用户ID并转换类型
 	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
 	if !ok {
@@ -102,7 +99,7 @@ func (s *UserService) GetMyProfile(ctx context.Context) (*user.GetMyProfileResp,
 	}
 
 	// 获取用户信息
-	userModel, err = s.UserRepository.FindUserByUserID(ctx, userId)
+	userModel, err := s.UserRepository.FindUserByUserID(ctx, userId)
 	if err != nil {
 		log.CtxError(ctx, "failed to find user: %v", err)
 		return nil, err
@@ -289,14 +286,20 @@ func (s *UserService) UpdateMyProfile(ctx context.Context, req *user.UpdateMyPro
 }
 
 func (s *UserService) UpdateUserRole(ctx context.Context, req *user.UpdateUserRoleReq) (*user.UpdateUserRoleResp, error) {
+	var ok bool
+	var err error
+	var isAdmin bool
+	var userId primitive.ObjectID
+	var targetId primitive.ObjectID
+
 	// 获取当前用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	userId, ok = ctx.Value(consts.ContextUserID).(primitive.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
 
 	// 检查是否有权限
-	if isAdmin, err := s.UserRepository.IsAdmin(ctx, userId); !isAdmin {
+	if isAdmin, err = s.UserRepository.IsAdmin(ctx, userId); !isAdmin {
 		log.CtxError(ctx, "user is not admin")
 		return nil, errorx.ErrUserPermissionsInsufficient
 	} else if err != nil {
@@ -305,19 +308,19 @@ func (s *UserService) UpdateUserRole(ctx context.Context, req *user.UpdateUserRo
 	}
 
 	// 从路径参数获取用户ID
-	targetId, ok := ctx.Value(consts.ContextTargetID).(primitive.ObjectID)
+	targetId, ok = ctx.Value(consts.ContextTargetID).(primitive.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
 
 	// 更新数据库
-	if err := s.UserRepository.UpdateUserRole(ctx, targetId, enum.GetUserRoleCode(req.Role)); err != nil {
+	if err = s.UserRepository.UpdateUserRole(ctx, targetId, enum.GetUserRoleCode(req.Role)); err != nil {
 		log.CtxError(ctx, "failed to update user role: %v", err)
 		return nil, err
 	}
 
 	// 更新 updatedAt 字段
-	if err := s.UserRepository.UpdateUser(ctx, targetId, bson.M{consts.UpdatedAt: time.Now()}); err != nil {
+	if err = s.UserRepository.UpdateUser(ctx, targetId, bson.M{consts.UpdatedAt: time.Now()}); err != nil {
 		log.CtxError(ctx, "failed to update user: %v", err)
 		return nil, err
 	}
@@ -355,6 +358,9 @@ func (s *UserService) UpdateMyPhone(ctx context.Context, req *user.UpdateMyPhone
 }
 
 func (s *UserService) UpdateMyUsername(ctx context.Context, req *user.UpdateMyUsernameReq) (*user.UpdateMyUsernameResp, error) {
+	var err error
+	var isExisted bool
+
 	// 获取当前用户ID并转换类型
 	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
 	if !ok {
@@ -362,7 +368,7 @@ func (s *UserService) UpdateMyUsername(ctx context.Context, req *user.UpdateMyUs
 	}
 
 	// 检查用户名是否已存在
-	if exists, err := s.UserRepository.IsUsernameExisted(ctx, req.NewUsername); exists {
+	if isExisted, err = s.UserRepository.IsUsernameExisted(ctx, req.NewUsername); isExisted {
 		log.CtxInfo(ctx, "username already exists")
 		return nil, errorx.ErrUsernameExisted
 	} else if err != nil {
@@ -371,7 +377,7 @@ func (s *UserService) UpdateMyUsername(ctx context.Context, req *user.UpdateMyUs
 	}
 
 	// 更新数据库
-	if err := s.UserRepository.UpdateUsername(ctx, userId, req.NewUsername); err != nil {
+	if err = s.UserRepository.UpdateUsername(ctx, userId, req.NewUsername); err != nil {
 		log.CtxError(ctx, "failed to update username: %v", err)
 		return nil, err
 	}

@@ -29,5 +29,14 @@ func SetupRoutes() *gin.Engine {
 		sessionGroup.DELETE("/", handler.DeleteSession)
 	}
 
+	// ElderApi
+	elderGroup := router.Group("/api/elders")
+	{
+		elderGroup.POST("/", handler.CreateElder)
+		//elderGroup.GET("/me", handler.GetMyElder)
+		//elderGroup.PATCH("/me", handler.UpdateMyElder)
+		//elderGroup.DELETE("/me", handler.DeleteMyElder)
+	}
+
 	return router
 }

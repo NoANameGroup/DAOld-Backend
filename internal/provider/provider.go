@@ -28,16 +28,20 @@ type Provider struct {
 	Config         *config.Config
 	UserService    service.UserService
 	SessionService service.SessionService
+	ElderService   service.ElderService
 }
 
 var ServiceSet = wire.NewSet(
 	service.UserServiceSet,
 	service.SessionServiceSet,
+	service.ElderServiceSet,
 )
 
 var RepositorySet = wire.NewSet(
 	config.NewConfig,
 	repository.NewUserRepository,
+	//repository.NewSessionRepository,
+	repository.NewElderRepository,
 )
 
 var AllProvider = wire.NewSet(

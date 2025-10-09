@@ -14,10 +14,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-const (
-	CollectionName = "user"
-)
-
 var _ IUserRepository = (*UserRepository)(nil)
 
 type IUserRepository interface {
@@ -43,7 +39,7 @@ type UserRepository struct {
 }
 
 func NewUserRepository(config *config.Config) *UserRepository {
-	conn := monc.MustNewModel(config.Mongo.URL, config.Mongo.DB, CollectionName, config.Cache)
+	conn := monc.MustNewModel(config.Mongo.URL, config.Mongo.DB, consts.UserCollectionName, config.Cache)
 	return &UserRepository{
 		conn: conn,
 	}
@@ -73,8 +69,7 @@ func (r *UserRepository) IsUsernameExisted(ctx context.Context, username string)
 }
 
 func (r *UserRepository) Insert(ctx context.Context, user *model.User) error {
-	var err error
-	if _, err = r.conn.InsertOneNoCache(ctx, user); err != nil {
+	if _, err := r.conn.InsertOneNoCache(ctx, user); err != nil {
 		log.CtxError(ctx, "failed to insert user: %v", err)
 		return err
 	}
@@ -83,11 +78,10 @@ func (r *UserRepository) Insert(ctx context.Context, user *model.User) error {
 }
 
 func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*model.User, error) {
-	var err error
 	user := model.User{}
-	log.CtxInfo(ctx, "FindUserByEmail in collection=%s, filter=%+v", CollectionName, bson.M{consts.Email: email})
+	log.CtxInfo(ctx, "FindUserByEmail in collection=%s, filter=%+v", consts.UserCollectionName, bson.M{consts.Email: email})
 
-	if err = r.conn.FindOneNoCache(ctx, &user, bson.M{consts.Email: email}); err != nil {
+	if err := r.conn.FindOneNoCache(ctx, &user, bson.M{consts.Email: email}); err != nil {
 		log.CtxError(ctx, "failed to find user by email: %v", err)
 		return nil, err
 	}
@@ -105,11 +99,10 @@ func (r *UserRepository) UpdateLastLoginAt(ctx context.Context, userId primitive
 }
 
 func (r *UserRepository) FindUserByUserID(ctx context.Context, userId primitive.ObjectID) (*model.User, error) {
-	var err error
 	user := model.User{}
-	log.CtxInfo(ctx, "FindUserByUserID in collection=%s, filter=%+v", CollectionName, bson.M{consts.UserID: userId})
+	log.CtxInfo(ctx, "FindUserByUserID in collection=%s, filter=%+v", consts.UserCollectionName, bson.M{consts.UserID: userId})
 
-	if err = r.conn.FindOneNoCache(ctx, &user, bson.M{consts.ID: userId}); err != nil {
+	if err := r.conn.FindOneNoCache(ctx, &user, bson.M{consts.ID: userId}); err != nil {
 		log.CtxError(ctx, "failed to find user by userId: %v", err)
 		return nil, err
 	}

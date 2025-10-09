@@ -1,7 +1,10 @@
 package consts
 
 // 数据库相关
-const ()
+const (
+	UserCollectionName  = "user"
+	ElderCollectionName = "elder"
+)
 
 // JWT 相关
 const (
