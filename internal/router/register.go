@@ -35,7 +35,7 @@ func SetupRoutes() *gin.Engine {
 		elderGroup.POST("/", handler.CreateElder)
 		elderGroup.GET("/me", handler.GetMyElder)
 		//elderGroup.PATCH("/me", handler.UpdateMyElder)
-		//elderGroup.DELETE("/me", handler.DeleteMyElder)
+		elderGroup.DELETE("/me", handler.DeleteMyElder)
 	}
 
 	return router

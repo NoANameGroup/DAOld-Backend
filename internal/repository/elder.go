@@ -15,7 +15,13 @@ var _ IElderRepository = (*ElderRepository)(nil)
 
 type IElderRepository interface {
 	Insert(ctx context.Context, elder *model.Elder) error
+
+	isFieldExisted(ctx context.Context, field string, value interface{}) (bool, error)
+	IsElderExistedByUserID(ctx context.Context, userId bson.ObjectID) (bool, error)
+
 	FindElderByUserID(ctx context.Context, userId bson.ObjectID) (*model.Elder, error)
+
+	DeleteElderByUserID(ctx context.Context, userId bson.ObjectID) error
 }
 
 type ElderRepository struct {
@@ -38,6 +44,21 @@ func (r *ElderRepository) Insert(ctx context.Context, elder *model.Elder) error 
 	return nil
 }
 
+func (r *ElderRepository) isFieldExisted(ctx context.Context, field string, value interface{}) (bool, error) {
+	var err error
+	var count int64
+	if count, err = r.conn.CountDocuments(ctx, bson.M{field: value}); err != nil {
+		log.CtxError(ctx, "failed to check existing %s: %v", field, err)
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
+func (r *ElderRepository) IsElderExistedByUserID(ctx context.Context, userId bson.ObjectID) (bool, error) {
+	return r.isFieldExisted(ctx, consts.UserID, userId)
+}
+
 func (r *ElderRepository) FindElderByUserID(ctx context.Context, userId bson.ObjectID) (*model.Elder, error) {
 	elder := model.Elder{}
 
@@ -46,4 +67,12 @@ func (r *ElderRepository) FindElderByUserID(ctx context.Context, userId bson.Obj
 		return nil, err
 	}
 	return &elder, nil
+}
+
+func (r *ElderRepository) DeleteElderByUserID(ctx context.Context, userId bson.ObjectID) error {
+	if _, err := r.conn.DeleteOneNoCache(ctx, bson.M{consts.UserID: userId}); err != nil {
+		log.CtxError(ctx, "failed to delete elder by userId: %v", err)
+		return err
+	}
+	return nil
 }

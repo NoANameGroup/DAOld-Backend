@@ -12,3 +12,7 @@ type GetMyElderResp struct {
 	*dto.Resp
 	*ElderVO
 }
+
+type DeleteMyElderResp struct {
+	*dto.Resp
+}

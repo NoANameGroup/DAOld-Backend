@@ -26,3 +26,12 @@ func GetMyElder(c *gin.Context) {
 	resp, err = provider.Get().ElderService.GetMyElder(c)
 	response.PostProcess(c, nil, resp, err)
 }
+
+func DeleteMyElder(c *gin.Context) {
+	var err error
+	var resp *elder.DeleteMyElderResp
+
+	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
+	resp, err = provider.Get().ElderService.DeleteMyElder(c)
+	response.PostProcess(c, nil, resp, err)
+}

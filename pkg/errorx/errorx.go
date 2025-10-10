@@ -88,7 +88,9 @@ var (
 )
 
 // 老人相关
-var ()
+var (
+	ErrElderExisted = New(4001, "老人已存在")
+)
 
 // 实现相关
 var (

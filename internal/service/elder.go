@@ -21,6 +21,8 @@ var _ IElderService = (*ElderService)(nil)
 type IElderService interface {
 	CreateElder(ctx context.Context) (*elder.CreateElderResp, error)
 	GetMyElder(ctx context.Context) (*elder.GetMyElderResp, error)
+
+	DeleteMyElder(ctx context.Context) (*elder.DeleteMyElderResp, error)
 }
 
 type ElderService struct {
@@ -35,11 +37,20 @@ var ElderServiceSet = wire.NewSet(
 
 func (s *ElderService) CreateElder(ctx context.Context) (*elder.CreateElderResp, error) {
 	var err error
+	var isExist bool
 
 	// 获取用户ID并转换类型
 	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
+	}
+
+	// 检查用户是否已经是老人
+	if isExist, err = s.ElderRepository.IsElderExistedByUserID(ctx, userId); err != nil {
+		log.CtxError(ctx, "failed to check existing elder: %v", err)
+		return nil, err
+	} else if isExist {
+		return nil, errorx.ErrElderExisted
 	}
 
 	// 修改用户角色为老人
@@ -106,4 +117,34 @@ func (s *ElderService) GetMyElder(ctx context.Context) (*elder.GetMyElderResp, e
 			CreatedAt:         elderModel.CreatedAt,
 		},
 	}, nil
+}
+
+func (s *ElderService) DeleteMyElder(ctx context.Context) (*elder.DeleteMyElderResp, error) {
+	var err error
+
+	// 获取用户ID并转换类型
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
+	if !ok {
+		return nil, errorx.ErrContextUserIDInvalid
+	}
+
+	// 删除用户角色为老人
+	if err = s.UserRepository.UpdateUserRoleByUserID(ctx, userId, enum.RoleUser); err != nil {
+		log.CtxError(ctx, "failed to update user role: %v", err)
+		return nil, err
+	}
+
+	// 修改 UpdateAt 为当前时间
+	if err = s.UserRepository.UpdateUpdatedAtByUserID(ctx, userId, time.Now()); err != nil {
+		log.CtxError(ctx, "failed to update updated at: %v", err)
+		return nil, err
+	}
+
+	// 删除老人
+	if err = s.ElderRepository.DeleteElderByUserID(ctx, userId); err != nil {
+		log.CtxError(ctx, "failed to delete elder: %v", err)
+		return nil, err
+	}
+
+	return &elder.DeleteMyElderResp{Resp: dto.Success()}, nil
 }
