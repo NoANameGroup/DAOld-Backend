@@ -87,6 +87,9 @@ var (
 	ErrCodeInvalid      = New(3004, "无效的验证码")
 )
 
+// 老人相关
+var ()
+
 // 实现相关
 var (
 	ErrNotImplemented = New(5001, "功能未实现")

@@ -1,10 +1,16 @@
 package model
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+)
 
 type Elder struct {
-	ID                primitive.ObjectID `bson:"id"`
-	UserID            primitive.ObjectID `bson:"userId"`
-	BlockChainAddress string             `bson:"blockChainAddress"`
-	Balance           float64            `bson:"balance"`
+	ID                bson.ObjectID `bson:"_id"`
+	UserID            bson.ObjectID `bson:"userId"`
+	BlockChainAddress string        `bson:"blockChainAddress"`
+	Balance           float64       `bson:"balance"`
+	CreatedAt         time.Time     `bson:"createdAt"`
+	UpdatedAt         time.Time     `bson:"updatedAt"`
 }

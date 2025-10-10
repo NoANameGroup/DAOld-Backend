@@ -39,7 +39,7 @@ func (s *SessionService) CreateSession(ctx context.Context, req *session.CreateS
 	// 获取用户
 	if newUser, err = s.UserRepository.FindUserByEmail(ctx, req.Email); err != nil {
 		log.CtxError(ctx, "failed to find user: %v", err)
-		return nil, err
+		return nil, errorx.ErrUsernameOrPasswordIncorrect
 	}
 
 	// 校验密码是否正确
@@ -49,7 +49,7 @@ func (s *SessionService) CreateSession(ctx context.Context, req *session.CreateS
 	}
 
 	// 更新最后登录时间
-	if err = s.UserRepository.UpdateLastLoginAt(ctx, newUser.ID, time.Now()); err != nil {
+	if err = s.UserRepository.UpdateLastLoginAtByUserID(ctx, newUser.ID, time.Now()); err != nil {
 		log.CtxError(ctx, "failed to update last login at: %v", err)
 		return nil, err
 	}

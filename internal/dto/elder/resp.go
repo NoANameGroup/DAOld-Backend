@@ -7,3 +7,8 @@ import (
 type CreateElderResp struct {
 	*dto.Resp
 }
+
+type GetMyElderResp struct {
+	*dto.Resp
+	*ElderVO
+}

@@ -10,7 +10,6 @@ import (
 	"github.com/NoANameGroup/DAOld-Backend/pkg/consts/enum"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/zeromicro/go-zero/core/stores/monc"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -21,17 +20,22 @@ type IUserRepository interface {
 	IsEmailExisted(ctx context.Context, email string) (bool, error)
 	IsPhoneExisted(ctx context.Context, phone string) (bool, error)
 	IsUsernameExisted(ctx context.Context, username string) (bool, error)
+
 	Insert(ctx context.Context, user *model.User) error
 	FindUserByEmail(ctx context.Context, email string) (*model.User, error)
-	UpdateLastLoginAt(ctx context.Context, userId primitive.ObjectID, t time.Time) error
-	FindUserByUserID(ctx context.Context, userId primitive.ObjectID) (*model.User, error)
-	UpdatePassword(ctx context.Context, userId primitive.ObjectID, password string) error
-	DeleteUser(ctx context.Context, userId primitive.ObjectID) error
-	UpdateUser(ctx context.Context, userId primitive.ObjectID, update bson.M) error
-	IsAdmin(ctx context.Context, userId primitive.ObjectID) (bool, error)
-	UpdateUserRole(ctx context.Context, userId primitive.ObjectID, role enum.UserRole) error
+	FindUserByUserID(ctx context.Context, userId bson.ObjectID) (*model.User, error)
+	DeleteUserByUserID(ctx context.Context, userId bson.ObjectID) error
+	UpdateUserByUserID(ctx context.Context, userId bson.ObjectID, update bson.M) error
+	IsAdmin(ctx context.Context, userId bson.ObjectID) (bool, error)
 
-	UpdateUsername(ctx context.Context, userId primitive.ObjectID, username string) error
+	updateFieldByUserID(ctx context.Context, userId bson.ObjectID, update bson.M) error
+	UpdateLastLoginAtByUserID(ctx context.Context, userId bson.ObjectID, t time.Time) error
+	UpdatePasswordByUserID(ctx context.Context, userId bson.ObjectID, password string) error
+	UpdateUserRoleByUserID(ctx context.Context, userId bson.ObjectID, role enum.UserRole) error
+	UpdateEmailByUserID(ctx context.Context, userId bson.ObjectID, email string) error
+	UpdatePhoneByUserID(ctx context.Context, userId bson.ObjectID, phone string) error
+	UpdateUsernameByUserID(ctx context.Context, userId bson.ObjectID, username string) error
+	UpdateUpdatedAtByUserID(ctx context.Context, userId bson.ObjectID, t time.Time) error
 }
 
 type UserRepository struct {
@@ -79,7 +83,6 @@ func (r *UserRepository) Insert(ctx context.Context, user *model.User) error {
 
 func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*model.User, error) {
 	user := model.User{}
-	log.CtxInfo(ctx, "FindUserByEmail in collection=%s, filter=%+v", consts.UserCollectionName, bson.M{consts.Email: email})
 
 	if err := r.conn.FindOneNoCache(ctx, &user, bson.M{consts.Email: email}); err != nil {
 		log.CtxError(ctx, "failed to find user by email: %v", err)
@@ -89,18 +92,8 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*mo
 	return &user, nil
 }
 
-func (r *UserRepository) UpdateLastLoginAt(ctx context.Context, userId primitive.ObjectID, t time.Time) error {
-	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": bson.M{consts.LastLoginAt: t}}); err != nil {
-		log.CtxError(ctx, "failed to update LastLoginAt for user %s: %v", userId.Hex(), err)
-		return err
-	}
-
-	return nil
-}
-
-func (r *UserRepository) FindUserByUserID(ctx context.Context, userId primitive.ObjectID) (*model.User, error) {
+func (r *UserRepository) FindUserByUserID(ctx context.Context, userId bson.ObjectID) (*model.User, error) {
 	user := model.User{}
-	log.CtxInfo(ctx, "FindUserByUserID in collection=%s, filter=%+v", consts.UserCollectionName, bson.M{consts.UserID: userId})
 
 	if err := r.conn.FindOneNoCache(ctx, &user, bson.M{consts.ID: userId}); err != nil {
 		log.CtxError(ctx, "failed to find user by userId: %v", err)
@@ -110,16 +103,7 @@ func (r *UserRepository) FindUserByUserID(ctx context.Context, userId primitive.
 	return &user, nil
 }
 
-func (r *UserRepository) UpdatePassword(ctx context.Context, userId primitive.ObjectID, hashPassword string) error {
-	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": bson.M{consts.Password: hashPassword}}); err != nil {
-		log.CtxError(ctx, "failed to update password for user %s: %v", userId.Hex(), err)
-		return err
-	}
-
-	return nil
-}
-
-func (r *UserRepository) DeleteUser(ctx context.Context, userId primitive.ObjectID) error {
+func (r *UserRepository) DeleteUserByUserID(ctx context.Context, userId bson.ObjectID) error {
 	if _, err := r.conn.DeleteOneNoCache(ctx, bson.M{consts.ID: userId}); err != nil {
 		log.CtxError(ctx, "failed to delete user %s: %v", userId.Hex(), err)
 		return err
@@ -128,7 +112,7 @@ func (r *UserRepository) DeleteUser(ctx context.Context, userId primitive.Object
 	return nil
 }
 
-func (r *UserRepository) UpdateUser(ctx context.Context, userId primitive.ObjectID, update bson.M) error {
+func (r *UserRepository) UpdateUserByUserID(ctx context.Context, userId bson.ObjectID, update bson.M) error {
 	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": update}); err != nil {
 		log.CtxError(ctx, "failed to update user %s: %v", userId.Hex(), err)
 		return err
@@ -137,10 +121,9 @@ func (r *UserRepository) UpdateUser(ctx context.Context, userId primitive.Object
 	return nil
 }
 
-func (r *UserRepository) IsAdmin(ctx context.Context, userId primitive.ObjectID) (bool, error) {
-	var err error
-	user := &model.User{}
-	if user, err = r.FindUserByUserID(ctx, userId); err != nil {
+func (r *UserRepository) IsAdmin(ctx context.Context, userId bson.ObjectID) (bool, error) {
+	user, err := r.FindUserByUserID(ctx, userId)
+	if err != nil {
 		log.CtxError(ctx, "failed to find user by userId: %v", err)
 		return false, err
 	}
@@ -148,20 +131,39 @@ func (r *UserRepository) IsAdmin(ctx context.Context, userId primitive.ObjectID)
 	return user.Role == enum.RoleAdmin, nil
 }
 
-func (r *UserRepository) UpdateUserRole(ctx context.Context, userId primitive.ObjectID, role enum.UserRole) error {
-	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": bson.M{consts.Role: role}}); err != nil {
-		log.CtxError(ctx, "failed to update user role %s: %v", userId.Hex(), err)
+func (r *UserRepository) updateFieldByUserID(ctx context.Context, userId bson.ObjectID, update bson.M) error {
+	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": update}); err != nil {
+		log.CtxError(ctx, "failed to update user %s: %v", userId.Hex(), err)
 		return err
 	}
 
 	return nil
 }
 
-func (r *UserRepository) UpdateUsername(ctx context.Context, userId primitive.ObjectID, username string) error {
-	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": bson.M{consts.Username: username}}); err != nil {
-		log.CtxError(ctx, "failed to update username %s: %v", userId.Hex(), err)
-		return err
-	}
+func (r *UserRepository) UpdateLastLoginAtByUserID(ctx context.Context, userId bson.ObjectID, t time.Time) error {
+	return r.updateFieldByUserID(ctx, userId, bson.M{consts.LastLoginAt: t})
+}
 
-	return nil
+func (r *UserRepository) UpdatePasswordByUserID(ctx context.Context, userId bson.ObjectID, hashPassword string) error {
+	return r.updateFieldByUserID(ctx, userId, bson.M{consts.Password: hashPassword})
+}
+
+func (r *UserRepository) UpdateUserRoleByUserID(ctx context.Context, userId bson.ObjectID, role enum.UserRole) error {
+	return r.updateFieldByUserID(ctx, userId, bson.M{consts.Role: role})
+}
+
+func (r *UserRepository) UpdateEmailByUserID(ctx context.Context, userId bson.ObjectID, email string) error {
+	return r.updateFieldByUserID(ctx, userId, bson.M{consts.Email: email})
+}
+
+func (r *UserRepository) UpdatePhoneByUserID(ctx context.Context, userId bson.ObjectID, phone string) error {
+	return r.updateFieldByUserID(ctx, userId, bson.M{consts.Phone: phone})
+}
+
+func (r *UserRepository) UpdateUsernameByUserID(ctx context.Context, userId bson.ObjectID, username string) error {
+	return r.updateFieldByUserID(ctx, userId, bson.M{consts.Username: username})
+}
+
+func (r *UserRepository) UpdateUpdatedAtByUserID(ctx context.Context, userId bson.ObjectID, t time.Time) error {
+	return r.updateFieldByUserID(ctx, userId, bson.M{consts.UpdatedAt: t})
 }
