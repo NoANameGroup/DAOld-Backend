@@ -13,6 +13,11 @@ type GetMyElderResp struct {
 	*ElderVO
 }
 
+type UpdateMyElderResp struct {
+	*dto.Resp
+	Count int `json:"count"`
+}
+
 type DeleteMyElderResp struct {
 	*dto.Resp
 }

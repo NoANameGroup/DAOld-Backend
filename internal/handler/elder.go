@@ -27,6 +27,21 @@ func GetMyElder(c *gin.Context) {
 	response.PostProcess(c, nil, resp, err)
 }
 
+func UpdateMyElder(c *gin.Context) {
+	var err error
+	var req elder.UpdateMyElderReq
+	var resp *elder.UpdateMyElderResp
+
+	if err = c.ShouldBindJSON(&req); err != nil {
+		response.PostProcess(c, &req, nil, err)
+		return
+	}
+
+	c.Set(consts.ContextUserID, jwt.ExtractUserIDFromContext(c))
+	resp, err = provider.Get().ElderService.UpdateMyElder(c, &req)
+	response.PostProcess(c, &req, resp, err)
+}
+
 func DeleteMyElder(c *gin.Context) {
 	var err error
 	var resp *elder.DeleteMyElderResp

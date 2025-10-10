@@ -14,12 +14,13 @@ import (
 var _ IElderRepository = (*ElderRepository)(nil)
 
 type IElderRepository interface {
-	Insert(ctx context.Context, elder *model.Elder) error
-
 	isFieldExisted(ctx context.Context, field string, value interface{}) (bool, error)
 	IsElderExistedByUserID(ctx context.Context, userId bson.ObjectID) (bool, error)
 
+	Insert(ctx context.Context, elder *model.Elder) error
 	FindElderByUserID(ctx context.Context, userId bson.ObjectID) (*model.Elder, error)
+	updateFieldByElderID(ctx context.Context, elderId bson.ObjectID, update bson.M) error
+	UpdateElderByElderID(ctx context.Context, elderId bson.ObjectID, update bson.M) error
 
 	DeleteElderByUserID(ctx context.Context, userId bson.ObjectID) error
 }
@@ -33,15 +34,6 @@ func NewElderRepository(config *config.Config) *ElderRepository {
 	return &ElderRepository{
 		conn: conn,
 	}
-}
-
-func (r *ElderRepository) Insert(ctx context.Context, elder *model.Elder) error {
-	if _, err := r.conn.InsertOneNoCache(ctx, elder); err != nil {
-		log.CtxError(ctx, "failed to insert elder: %v", err)
-		return err
-	}
-
-	return nil
 }
 
 func (r *ElderRepository) isFieldExisted(ctx context.Context, field string, value interface{}) (bool, error) {
@@ -59,6 +51,15 @@ func (r *ElderRepository) IsElderExistedByUserID(ctx context.Context, userId bso
 	return r.isFieldExisted(ctx, consts.UserID, userId)
 }
 
+func (r *ElderRepository) Insert(ctx context.Context, elder *model.Elder) error {
+	if _, err := r.conn.InsertOneNoCache(ctx, elder); err != nil {
+		log.CtxError(ctx, "failed to insert elder: %v", err)
+		return err
+	}
+
+	return nil
+}
+
 func (r *ElderRepository) FindElderByUserID(ctx context.Context, userId bson.ObjectID) (*model.Elder, error) {
 	elder := model.Elder{}
 
@@ -66,7 +67,21 @@ func (r *ElderRepository) FindElderByUserID(ctx context.Context, userId bson.Obj
 		log.CtxError(ctx, "failed to find elder by userId: %v", err)
 		return nil, err
 	}
+
 	return &elder, nil
+}
+
+func (r *ElderRepository) updateFieldByElderID(ctx context.Context, elderId bson.ObjectID, update bson.M) error {
+	if _, err := r.conn.UpdateByIDNoCache(ctx, elderId, bson.M{"$set": update}); err != nil {
+		log.CtxError(ctx, "failed to update user %s: %v", elderId.Hex(), err)
+		return err
+	}
+
+	return nil
+}
+
+func (r *ElderRepository) UpdateElderByElderID(ctx context.Context, elderId bson.ObjectID, update bson.M) error {
+	return r.updateFieldByElderID(ctx, elderId, update)
 }
 
 func (r *ElderRepository) DeleteElderByUserID(ctx context.Context, userId bson.ObjectID) error {
@@ -74,5 +89,6 @@ func (r *ElderRepository) DeleteElderByUserID(ctx context.Context, userId bson.O
 		log.CtxError(ctx, "failed to delete elder by userId: %v", err)
 		return err
 	}
+
 	return nil
 }

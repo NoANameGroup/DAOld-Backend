@@ -25,10 +25,10 @@ type IUserRepository interface {
 	FindUserByEmail(ctx context.Context, email string) (*model.User, error)
 	FindUserByUserID(ctx context.Context, userId bson.ObjectID) (*model.User, error)
 	DeleteUserByUserID(ctx context.Context, userId bson.ObjectID) error
-	UpdateUserByUserID(ctx context.Context, userId bson.ObjectID, update bson.M) error
 	IsAdmin(ctx context.Context, userId bson.ObjectID) (bool, error)
 
 	updateFieldByUserID(ctx context.Context, userId bson.ObjectID, update bson.M) error
+	UpdateUserByUserID(ctx context.Context, userId bson.ObjectID, update bson.M) error
 	UpdateLastLoginAtByUserID(ctx context.Context, userId bson.ObjectID, t time.Time) error
 	UpdatePasswordByUserID(ctx context.Context, userId bson.ObjectID, password string) error
 	UpdateUserRoleByUserID(ctx context.Context, userId bson.ObjectID, role enum.UserRole) error
@@ -112,15 +112,6 @@ func (r *UserRepository) DeleteUserByUserID(ctx context.Context, userId bson.Obj
 	return nil
 }
 
-func (r *UserRepository) UpdateUserByUserID(ctx context.Context, userId bson.ObjectID, update bson.M) error {
-	if _, err := r.conn.UpdateByIDNoCache(ctx, userId, bson.M{"$set": update}); err != nil {
-		log.CtxError(ctx, "failed to update user %s: %v", userId.Hex(), err)
-		return err
-	}
-
-	return nil
-}
-
 func (r *UserRepository) IsAdmin(ctx context.Context, userId bson.ObjectID) (bool, error) {
 	user, err := r.FindUserByUserID(ctx, userId)
 	if err != nil {
@@ -138,6 +129,10 @@ func (r *UserRepository) updateFieldByUserID(ctx context.Context, userId bson.Ob
 	}
 
 	return nil
+}
+
+func (r *UserRepository) UpdateUserByUserID(ctx context.Context, userId bson.ObjectID, update bson.M) error {
+	return r.updateFieldByUserID(ctx, userId, update)
 }
 
 func (r *UserRepository) UpdateLastLoginAtByUserID(ctx context.Context, userId bson.ObjectID, t time.Time) error {

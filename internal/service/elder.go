@@ -21,7 +21,7 @@ var _ IElderService = (*ElderService)(nil)
 type IElderService interface {
 	CreateElder(ctx context.Context) (*elder.CreateElderResp, error)
 	GetMyElder(ctx context.Context) (*elder.GetMyElderResp, error)
-
+	UpdateMyElder(ctx context.Context, req *elder.UpdateMyElderReq) (*elder.UpdateMyElderResp, error)
 	DeleteMyElder(ctx context.Context) (*elder.DeleteMyElderResp, error)
 }
 
@@ -116,6 +116,41 @@ func (s *ElderService) GetMyElder(ctx context.Context) (*elder.GetMyElderResp, e
 			Balance:           elderModel.Balance,
 			CreatedAt:         elderModel.CreatedAt,
 		},
+	}, nil
+}
+
+func (s *ElderService) UpdateMyElder(ctx context.Context, req *elder.UpdateMyElderReq) (*elder.UpdateMyElderResp, error) {
+	var err error
+	var elderModel *model.Elder
+	// 获取用户ID并转换类型
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
+	if !ok {
+		return nil, errorx.ErrContextUserIDInvalid
+	}
+
+	// 获得老人ID
+	if elderModel, err = s.ElderRepository.FindElderByUserID(ctx, userId); err != nil {
+		log.CtxError(ctx, "failed to find elder: %v", err)
+		return nil, err
+	}
+
+	update := bson.M{}
+	cnt := 0
+
+	if req.BlockChainAddress != "" {
+		update[consts.BlockChainAddress] = req.BlockChainAddress
+		cnt++
+	}
+
+	update[consts.UpdatedAt] = time.Now()
+
+	if err = s.ElderRepository.UpdateElderByElderID(ctx, elderModel.ID, update); err != nil {
+		return nil, err
+	}
+
+	return &elder.UpdateMyElderResp{
+		Resp:  dto.Success(),
+		Count: cnt,
 	}, nil
 }
 
