@@ -14,7 +14,6 @@ import (
 	"github.com/NoANameGroup/DAOld-Backend/pkg/log"
 	"github.com/NoANameGroup/DAOld-Backend/pkg/security"
 	"github.com/google/wire"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -72,7 +71,7 @@ func (s *UserService) CreateUser(ctx context.Context, req *user.CreateUserReq) (
 
 	// 创建用户
 	newUser := &model.User{
-		ID:        primitive.NewObjectID(),
+		ID:        bson.NewObjectID(),
 		Email:     req.Email,
 		Username:  req.Username,
 		Password:  hashPassword,
@@ -92,17 +91,14 @@ func (s *UserService) CreateUser(ctx context.Context, req *user.CreateUserReq) (
 }
 
 func (s *UserService) GetMyProfile(ctx context.Context) (*user.GetMyProfileResp, error) {
-	var err error
-	var userModel *model.User
-
 	// 获取用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
 
 	// 获取用户信息
-	userModel, err = s.UserRepository.FindUserByUserID(ctx, userId)
+	userModel, err := s.UserRepository.FindUserByUserID(ctx, userId)
 	if err != nil {
 		log.CtxError(ctx, "failed to find user: %v", err)
 		return nil, err
@@ -136,7 +132,7 @@ func (s *UserService) UpdateMyPassword(ctx context.Context, req *user.UpdateMyPa
 	var hashPassword string
 
 	// 获取用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
@@ -173,13 +169,13 @@ func (s *UserService) UpdateMyPassword(ctx context.Context, req *user.UpdateMyPa
 	}
 
 	// 更新密码
-	if err = s.UserRepository.UpdatePassword(ctx, userId, hashPassword); err != nil {
+	if err = s.UserRepository.UpdatePasswordByUserID(ctx, userId, hashPassword); err != nil {
 		log.CtxError(ctx, "failed to update password: %v", err)
 		return nil, err
 	}
 
 	// 更新 updatedAt 字段
-	if err = s.UserRepository.UpdateUser(ctx, userId, bson.M{consts.UpdatedAt: time.Now()}); err != nil {
+	if err = s.UserRepository.UpdateUserByUserID(ctx, userId, bson.M{consts.UpdatedAt: time.Now()}); err != nil {
 		log.CtxError(ctx, "failed to update user: %v", err)
 		return nil, err
 	}
@@ -194,7 +190,7 @@ func (s *UserService) DeleteMyAccount(ctx context.Context, req *user.DeleteMyAcc
 	var userModel *model.User
 
 	// 获取用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
@@ -219,7 +215,7 @@ func (s *UserService) DeleteMyAccount(ctx context.Context, req *user.DeleteMyAcc
 	}
 
 	// 删除用户
-	if err = s.UserRepository.DeleteUser(ctx, userId); err != nil {
+	if err = s.UserRepository.DeleteUserByUserID(ctx, userId); err != nil {
 		log.CtxError(ctx, "failed to delete user: %v", err)
 		return nil, err
 	}
@@ -231,7 +227,7 @@ func (s *UserService) DeleteMyAccount(ctx context.Context, req *user.DeleteMyAcc
 
 func (s *UserService) UpdateMyProfile(ctx context.Context, req *user.UpdateMyProfileReq) (*user.UpdateMyProfileResp, error) {
 	// 获取用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
@@ -278,7 +274,7 @@ func (s *UserService) UpdateMyProfile(ctx context.Context, req *user.UpdateMyPro
 
 	update[consts.UpdatedAt] = time.Now()
 
-	if err := s.UserRepository.UpdateUser(ctx, userId, update); err != nil {
+	if err := s.UserRepository.UpdateUserByUserID(ctx, userId, update); err != nil {
 		return nil, err
 	}
 
@@ -289,14 +285,20 @@ func (s *UserService) UpdateMyProfile(ctx context.Context, req *user.UpdateMyPro
 }
 
 func (s *UserService) UpdateUserRole(ctx context.Context, req *user.UpdateUserRoleReq) (*user.UpdateUserRoleResp, error) {
+	var ok bool
+	var err error
+	var isAdmin bool
+	var userId bson.ObjectID
+	var targetId bson.ObjectID
+
 	// 获取当前用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	userId, ok = ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
 
 	// 检查是否有权限
-	if isAdmin, err := s.UserRepository.IsAdmin(ctx, userId); !isAdmin {
+	if isAdmin, err = s.UserRepository.IsAdmin(ctx, userId); !isAdmin {
 		log.CtxError(ctx, "user is not admin")
 		return nil, errorx.ErrUserPermissionsInsufficient
 	} else if err != nil {
@@ -305,19 +307,19 @@ func (s *UserService) UpdateUserRole(ctx context.Context, req *user.UpdateUserRo
 	}
 
 	// 从路径参数获取用户ID
-	targetId, ok := ctx.Value(consts.ContextTargetID).(primitive.ObjectID)
+	targetId, ok = ctx.Value(consts.ContextTargetID).(bson.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
 
 	// 更新数据库
-	if err := s.UserRepository.UpdateUserRole(ctx, targetId, enum.GetUserRoleCode(req.Role)); err != nil {
+	if err = s.UserRepository.UpdateUserRoleByUserID(ctx, targetId, enum.GetUserRoleCode(req.Role)); err != nil {
 		log.CtxError(ctx, "failed to update user role: %v", err)
 		return nil, err
 	}
 
 	// 更新 updatedAt 字段
-	if err := s.UserRepository.UpdateUser(ctx, targetId, bson.M{consts.UpdatedAt: time.Now()}); err != nil {
+	if err = s.UserRepository.UpdateUserByUserID(ctx, targetId, bson.M{consts.UpdatedAt: time.Now()}); err != nil {
 		log.CtxError(ctx, "failed to update user: %v", err)
 		return nil, err
 	}
@@ -333,7 +335,7 @@ func (s *UserService) UpdateMyEmail(ctx context.Context, req *user.UpdateMyEmail
 
 func (s *UserService) UpdateMyPhone(ctx context.Context, req *user.UpdateMyPhoneReq) (*user.UpdateMyPhoneResp, error) {
 	// 获取当前用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
@@ -355,14 +357,17 @@ func (s *UserService) UpdateMyPhone(ctx context.Context, req *user.UpdateMyPhone
 }
 
 func (s *UserService) UpdateMyUsername(ctx context.Context, req *user.UpdateMyUsernameReq) (*user.UpdateMyUsernameResp, error) {
+	var err error
+	var isExisted bool
+
 	// 获取当前用户ID并转换类型
-	userId, ok := ctx.Value(consts.ContextUserID).(primitive.ObjectID)
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
 	if !ok {
 		return nil, errorx.ErrContextUserIDInvalid
 	}
 
 	// 检查用户名是否已存在
-	if exists, err := s.UserRepository.IsUsernameExisted(ctx, req.NewUsername); exists {
+	if isExisted, err = s.UserRepository.IsUsernameExisted(ctx, req.NewUsername); isExisted {
 		log.CtxInfo(ctx, "username already exists")
 		return nil, errorx.ErrUsernameExisted
 	} else if err != nil {
@@ -371,7 +376,7 @@ func (s *UserService) UpdateMyUsername(ctx context.Context, req *user.UpdateMyUs
 	}
 
 	// 更新数据库
-	if err := s.UserRepository.UpdateUsername(ctx, userId, req.NewUsername); err != nil {
+	if err = s.UserRepository.UpdateUsernameByUserID(ctx, userId, req.NewUsername); err != nil {
 		log.CtxError(ctx, "failed to update username: %v", err)
 		return nil, err
 	}

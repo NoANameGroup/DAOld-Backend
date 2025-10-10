@@ -26,10 +26,16 @@ func NewProvider() (*Provider, error) {
 	sessionService := service.SessionService{
 		UserRepository: userRepository,
 	}
+	elderRepository := repository.NewElderRepository(configConfig)
+	elderService := service.ElderService{
+		ElderRepository: elderRepository,
+		UserRepository:  userRepository,
+	}
 	providerProvider := &Provider{
 		Config:         configConfig,
 		UserService:    userService,
 		SessionService: sessionService,
+		ElderService:   elderService,
 	}
 	return providerProvider, nil
 }
