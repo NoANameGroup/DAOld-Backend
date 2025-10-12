@@ -16,6 +16,8 @@ var _ IElderRepository = (*ElderRepository)(nil)
 type IElderRepository interface {
 	Insert(ctx context.Context, elder *model.Elder) error
 	FindElderByUserID(ctx context.Context, userId bson.ObjectID) (*model.Elder, error)
+	DeleteElderByUserID(ctx context.Context, userId bson.ObjectID) error
+	UpdateElderByUserID(ctx context.Context, userId bson.ObjectID, update bson.M) error
 }
 
 type ElderRepository struct {
@@ -46,4 +48,24 @@ func (r *ElderRepository) FindElderByUserID(ctx context.Context, userId bson.Obj
 		return nil, err
 	}
 	return &elder, nil
+}
+
+func (r *ElderRepository) DeleteElderByUserID(ctx context.Context, userId bson.ObjectID) error {
+	filter := bson.M{consts.UserID: userId}
+	if _, err := r.conn.DeleteOneNoCache(ctx, filter); err != nil {
+		log.CtxError(ctx, "failed to delete elder by userId: %v", err)
+		return err
+	}
+	return nil
+}
+
+func (r *ElderRepository) UpdateElderByUserID(ctx context.Context, userId bson.ObjectID, update bson.M) error {
+	filter := bson.M{consts.UserID: userId}
+	updateDoc := bson.M{"$set": update}
+
+	if _, err := r.conn.UpdateOneNoCache(ctx, filter, updateDoc); err != nil {
+		log.CtxError(ctx, "failed to update elder by userId %s: %v", userId.Hex(), err)
+		return err
+	}
+	return nil
 }

@@ -21,6 +21,8 @@ var _ IElderService = (*ElderService)(nil)
 type IElderService interface {
 	CreateElder(ctx context.Context) (*elder.CreateElderResp, error)
 	GetMyElder(ctx context.Context) (*elder.GetMyElderResp, error)
+	DeleteMyElder(ctx context.Context) (*elder.DeleteMyElderResp, error)
+	UpdateMyElder(ctx context.Context, req *elder.UpdateMyElderReq) (*elder.UpdateMyElderResp, error)
 }
 
 type ElderService struct {
@@ -106,4 +108,72 @@ func (s *ElderService) GetMyElder(ctx context.Context) (*elder.GetMyElderResp, e
 			CreatedAt:         elderModel.CreatedAt,
 		},
 	}, nil
+}
+
+/*
+对业务逻辑的理解：DeleteMyAccount 已经存在于 UserService 中，
+所以DeleteMyElder是 CreateElder 的逆操作；
+更新我的Elder信息，唯一合理且安全的、可由用户直接更新的字段是 BlockChainAddress
+*/
+
+func (s *ElderService) DeleteMyElder(ctx context.Context) (*elder.DeleteMyElderResp, error) {
+	var err error
+
+	// 获取当前用户ID并转换类型
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
+	if !ok {
+		return nil, errorx.ErrContextUserIDInvalid
+	}
+
+	// 将角色还原为普通用户
+	if err = s.UserRepository.UpdateUserRoleByUserID(ctx, userId, enum.RoleUser); err != nil {
+		log.CtxError(ctx, "failed to update user role back to user: %v", err)
+		// 即使此步失败，也应该继续尝试删除elder记录，以进行数据清理，但在有事务的情况下，整个操作会直接回滚
+		return nil, err
+	}
+
+	// 从elders集合删除对应记录
+	if err = s.ElderRepository.DeleteElderByUserID(ctx, userId); err != nil {
+		log.CtxError(ctx, "failed to delete elder record: %v", err)
+		// 此处可能导致数据不一致。如果角色更新成功但删除失败，用户角色是User，但elder记录依然存在。这就是为什么需要事务。
+		return nil, err
+	}
+
+	// 更新用户的 UpdatedAt 时间戳
+	if err = s.UserRepository.UpdateUpdatedAtByUserID(ctx, userId, time.Now()); err != nil {
+		log.CtxError(ctx, "failed to update user updated at: %v", err)
+		return nil, err
+	}
+
+	return &elder.DeleteMyElderResp{Resp: dto.Success()}, nil
+}
+
+func (s *ElderService) UpdateMyElder(ctx context.Context, req *elder.UpdateMyElderReq) (*elder.UpdateMyElderResp, error) {
+	// 获取当前用户ID并转换类型
+	userId, ok := ctx.Value(consts.ContextUserID).(bson.ObjectID)
+	if !ok {
+		return nil, errorx.ErrContextUserIDInvalid
+	}
+
+	update := bson.M{}
+	updateCount := 0
+
+	// 检查请求中是否有提供BlockChainAddress字段并进行更新
+	if req.BlockChainAddress != "" {
+		update["blockChainAddress"] = req.BlockChainAddress
+		updateCount++
+	}
+
+	// 如果没有更新的字段，直接返回成功
+	if updateCount == 0 {
+		return &elder.UpdateMyElderResp{Resp: dto.Success()}, nil
+	}
+
+	update[consts.UpdatedAt] = time.Now()
+	if err := s.ElderRepository.UpdateElderByUserID(ctx, userId, update); err != nil {
+		log.CtxError(ctx, "failed to update elder: %v", err)
+		return nil, err
+	}
+
+	return &elder.UpdateMyElderResp{Resp: dto.Success()}, nil
 }
